@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Virtuelles Labor: Galvanische Zellen – Chemie KS LF | Schule Birklehof</title>
+  <meta name="description" content="Interaktives virtuelles Labor zum Bau und zur Spannungsmessung galvanischer Zellen aus den Halbzellen Ag/AgNO₃, Cu/CuSO₄, Fe/FeSO₄ und Zn/ZnSO₄ – mit Teilchenebene und Bildung der elektrochemischen Doppelschicht.">
+  <link rel="stylesheet" href="style.css">
+  <script src="chem.js" defer></script>
+  <script src="particles.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a href="#main-heading" class="skip-link visually-hidden">Zum Hauptinhalt springen</a>
+    <div class="header-inner">
+      <img src="assets/mint_logo.png" alt="Logo MINT-freundliche Schule" class="logo-mint" width="120" height="30" fetchpriority="high">
+      <div class="header-title">
+        <p class="kicker">Schule Birklehof · Chemie Kursstufe Leistungsfach · 3.4.7 Elektrochemie</p>
+        <h1 id="main-heading" tabindex="-1">Virtuelles Labor: Galvanische Zellen</h1>
+        <p class="subtitle">Halbzellen bauen, Zellspannungen messen, Teilchenebene &amp; elektrochemische Doppelschicht verstehen</p>
+      </div>
+      <img src="assets/birklehof_logo.png" alt="Wappen der Schule Birklehof" class="logo-crest" width="44" height="60" fetchpriority="high">
+    </div>
+    <nav class="site-nav" aria-label="Abschnitte des virtuellen Labors">
+      <a href="#start">Ziel &amp; Auftrag</a>
+      <a href="#labor">Virtuelles Labor</a>
+      <a href="#teilchen">Teilchenebene</a>
+      <a href="#doppelschicht">Doppelschicht</a>
+      <a href="#galerie">Versuchsgalerie</a>
+      <a href="#auswertung">Auswertung</a>
+      <a href="#fachsprache">Fachsprachen-Box</a>
+      <div class="progress" aria-live="polite">
+        <span id="progress-text">0 / 0 erledigt</span>
+        <progress id="progress-bar" max="1" value="0" aria-label="Gesamtfortschritt"></progress>
+        <button type="button" id="print-page" class="btn btn-secondary btn-sm">Drucken / PDF</button>
+        <button type="button" id="reset-all" class="btn btn-ghost btn-sm">Alles zurücksetzen</button>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main-content">
+    <!-- =============================================================
+         1. ZIEL & AUFTRAG
+         ============================================================= -->
+    <section id="start" class="card">
+      <h2>Ziel &amp; Arbeitsauftrag</h2>
+      <div class="intro-grid">
+        <div class="goal-card">
+          <h3>Ziel</h3>
+          <p>Messt die Spannung verschiedener galvanischer Zellen, die ihr aus den Halbzellen der konjugierten Redoxpaare <strong>(Ag / AgNO₃)</strong>, <strong>(Cu / CuSO₄)</strong>, <strong>(Fe / FeSO₄)</strong> und <strong>(Zn / ZnSO₄)</strong> baut.</p>
+          <h3>To do</h3>
+          <ol class="todo-list" id="todo-overview">
+            <li data-step="1">Halbzelle aus Metallblech und Elektrolyt (0,1 M) vorbereiten</li>
+            <li data-step="2">Halbzellen über Voltmeter zur Spannungsmessung verbinden, sodass eine positive Spannung gemessen werden kann.</li>
+            <li data-step="3">Stromkreis durch Salzbrücke / Stromschlüssel (Filterpapier mit KNO₃) getränkt, schließen.</li>
+            <li data-step="4">Dokumentation in der Versuchsgalerie</li>
+          </ol>
+          <p class="small-note">Mit vier Halbzellen lassen sich <strong>sechs</strong> verschiedene galvanische Zellen bauen. Miss alle sechs!</p>
+        </div>
+
+        <div>
+          <h3>So arbeitest du mit dem virtuellen Labor</h3>
+          <ol class="howto">
+            <li><strong>Labor:</strong> Wähle für beide Bechergläser Metallblech und Elektrolyt, schließe das Voltmeter an und lege die Salzbrücke ein. Die Schritte werden automatisch abgehakt.</li>
+            <li><strong>Teilchenebene:</strong> Beobachte, was an den Elektroden passiert. Schalte auf <em>Verbraucher (Motor)</em>, um Elektronen- und Ionenwanderung zu sehen, und blende die <em>Doppelschicht</em> ein.</li>
+            <li><strong>Doppelschicht-Labor:</strong> Tauche ein einzelnes Metallblech ein und verfolge, wie sich das dynamische Gleichgewicht einstellt.</li>
+            <li><strong>Galerie &amp; Auswertung:</strong> Übernimm deine Messwerte, bestimme Minus- und Pluspol, stelle die Redoxreihe auf und formuliere mit der Fachsprachen-Box.</li>
+          </ol>
+          <p class="muted">Alle Messwerte und Antworten werden lokal in deinem Browser gespeichert.</p>
+        </div>
+
+        <div class="callout callout-info">
+          <h3>Bildungsplanbezug (BW Kursstufe LF, 3.4.7)</h3>
+          <ul class="compact-list">
+            <li><strong>(5)</strong> den Aufbau einer galvanischen Zelle (Daniell-Element) beschreiben</li>
+            <li><strong>(6)</strong> Zellspannungen galvanischer Zellen experimentell ermitteln</li>
+            <li><strong>(7)</strong> die wesentlichen Prozesse darstellen (Elektrodenreaktionen, Anode, Kathode, Zellspannung)</li>
+            <li><strong>(8)</strong> die Zellspannung mithilfe von Gleichgewichtsbetrachtungen an den elektrochemischen Doppelschichten erklären</li>
+            <li><strong>(11)</strong> Konzentrationsabhängigkeit (Nernst-Gleichung) – im Expertenmodus</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout callout-warn">
+        <h3>Sicherheit im realen Versuch</h3>
+        <p>Silbernitrat (AgNO₃) ist ätzend und färbt die Haut schwarz; Kupfer(II)-sulfat und Zinksulfat sind gesundheits- und umweltschädlich. <strong>Schutzbrille und Handschuhe tragen.</strong> Lösungen nicht in den Ausguss, sondern in den Sammelbehälter für <em>Schwermetallsalzlösungen</em> geben. Für die Salzbrücke KNO₃ verwenden – <strong>kein KCl</strong>: Chlorid-Ionen würden mit Ag⁺ zu AgCl↓ ausfallen.</p>
+      </div>
+    </section>
+
+    <!-- =============================================================
+         2. VIRTUELLES LABOR
+         ============================================================= -->
+    <section id="labor" class="card">
+      <h2>Virtuelles Labor: Galvanische Zelle aufbauen und Spannung messen</h2>
+
+      <div class="lab-workspace">
+        <div class="apparatus-panel">
+          <div class="panel-header">
+            <h3>Versuchsaufbau</h3>
+            <span class="badge" id="lab-badge">Aufbau unvollständig</span>
+          </div>
+          <div class="svg-stage apparatus-stage" id="apparatus" role="img" aria-label="Schematischer Versuchsaufbau der galvanischen Zelle"></div>
+
+          <div class="readout-grid">
+            <div class="readout-box readout-main">
+              <span class="readout-label" id="readout-label">Voltmeter-Anzeige</span>
+              <output class="readout-value" id="readout-value" aria-live="polite">— V</output>
+            </div>
+            <div class="readout-box">
+              <span class="readout-label">Minuspol (Anode)</span>
+              <output class="readout-value" id="readout-anode">—</output>
+            </div>
+            <div class="readout-box">
+              <span class="readout-label">Pluspol (Kathode)</span>
+              <output class="readout-value" id="readout-cathode">—</output>
+            </div>
+          </div>
+          <p class="status-box" id="lab-status" aria-live="polite">Wähle zuerst für beide Halbzellen Metallblech und Elektrolyt.</p>
+        </div>
+
+        <div class="steps-panel">
+          <ol class="steps">
+            <!-- Schritt 1 -->
+            <li class="step" id="step-1">
+              <div class="step-head"><span class="step-check" aria-hidden="true"></span><h3>1. Halbzellen vorbereiten</h3></div>
+              <p class="small-note">Metallblech in Elektrolyt (Salzlösung, 0,1 mol/L) tauchen.</p>
+              <div class="halfcell-grid">
+                <fieldset class="halfcell" data-side="left">
+                  <legend>Becherglas links</legend>
+                  <label>Metallblech (Elektrode)
+                    <select data-field="metal">
+                      <option value="">– wählen –</option>
+                      <option value="Ag">Silberblech (Ag)</option>
+                      <option value="Cu">Kupferblech (Cu)</option>
+                      <option value="Fe">Eisenblech (Fe)</option>
+                      <option value="Zn">Zinkblech (Zn)</option>
+                    </select>
+                  </label>
+                  <label>Elektrolyt
+                    <select data-field="electrolyte">
+                      <option value="">– wählen –</option>
+                      <option value="Ag">Silbernitrat-Lsg. (AgNO₃)</option>
+                      <option value="Cu">Kupfer(II)-sulfat-Lsg. (CuSO₄)</option>
+                      <option value="Fe">Eisen(II)-sulfat-Lsg. (FeSO₄)</option>
+                      <option value="Zn">Zinksulfat-Lsg. (ZnSO₄)</option>
+                    </select>
+                  </label>
+                  <label class="expert-only">Konzentration
+                    <select data-field="c">
+                      <option value="1">1 mol/L</option>
+                      <option value="0.1" selected>0,1 mol/L</option>
+                      <option value="0.01">0,01 mol/L</option>
+                      <option value="0.001">0,001 mol/L</option>
+                    </select>
+                  </label>
+                </fieldset>
+                <fieldset class="halfcell" data-side="right">
+                  <legend>Becherglas rechts</legend>
+                  <label>Metallblech (Elektrode)
+                    <select data-field="metal">
+                      <option value="">– wählen –</option>
+                      <option value="Ag">Silberblech (Ag)</option>
+                      <option value="Cu">Kupferblech (Cu)</option>
+                      <option value="Fe">Eisenblech (Fe)</option>
+                      <option value="Zn">Zinkblech (Zn)</option>
+                    </select>
+                  </label>
+                  <label>Elektrolyt
+                    <select data-field="electrolyte">
+                      <option value="">– wählen –</option>
+                      <option value="Ag">Silbernitrat-Lsg. (AgNO₃)</option>
+                      <option value="Cu">Kupfer(II)-sulfat-Lsg. (CuSO₄)</option>
+                      <option value="Fe">Eisen(II)-sulfat-Lsg. (FeSO₄)</option>
+                      <option value="Zn">Zinksulfat-Lsg. (ZnSO₄)</option>
+                    </select>
+                  </label>
+                  <label class="expert-only">Konzentration
+                    <select data-field="c">
+                      <option value="1">1 mol/L</option>
+                      <option value="0.1" selected>0,1 mol/L</option>
+                      <option value="0.01">0,01 mol/L</option>
+                      <option value="0.001">0,001 mol/L</option>
+                    </select>
+                  </label>
+                </fieldset>
+              </div>
+              <div class="btn-row">
+                <button type="button" class="btn btn-ghost btn-sm" id="random-cell">Zufällige Zelle</button>
+                <button type="button" class="btn btn-ghost btn-sm" id="next-cell">Nächste noch nicht gemessene Zelle</button>
+              </div>
+              <p class="mismatch-note" id="mismatch-note" hidden></p>
+            </li>
+
+            <!-- Schritt 2 -->
+            <li class="step" id="step-2">
+              <div class="step-head"><span class="step-check" aria-hidden="true"></span><h3>2. Voltmeter anschließen</h3></div>
+              <p class="small-note">Rotes Kabel an die Buchse <strong>V</strong>, schwarzes Kabel an <strong>COM</strong>. Die Anzeige ist positiv, wenn das rote Kabel am Pluspol hängt.</p>
+              <div class="btn-row">
+                <button type="button" class="btn btn-sm" id="toggle-cables">Kabel anschließen</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="swap-cables" disabled>Kabel tauschen</button>
+              </div>
+              <p class="small-note" id="cable-info">Kabel nicht angeschlossen.</p>
+              <fieldset class="device-choice">
+                <legend>Messgerät / Verbraucher</legend>
+                <label><input type="radio" name="device" value="voltmeter" checked> Voltmeter (hochohmig, I ≈ 0)</label>
+                <label><input type="radio" name="device" value="motor"> Verbraucher: Solarmotor + Amperemeter</label>
+              </fieldset>
+            </li>
+
+            <!-- Schritt 3 -->
+            <li class="step" id="step-3">
+              <div class="step-head"><span class="step-check" aria-hidden="true"></span><h3>3. Salzbrücke einlegen</h3></div>
+              <fieldset class="bridge-choice">
+                <legend class="visually-hidden">Salzbrücke</legend>
+                <label><input type="radio" name="bridge" value="none" checked> keine Verbindung</label>
+                <label><input type="radio" name="bridge" value="dry"> trockener Filterpapierstreifen</label>
+                <label><input type="radio" name="bridge" value="kno3"> Filterpapier, mit KNO₃-Lösung getränkt</label>
+              </fieldset>
+            </li>
+
+            <!-- Schritt 4 -->
+            <li class="step" id="step-4">
+              <div class="step-head"><span class="step-check" aria-hidden="true"></span><h3>4. Dokumentieren</h3></div>
+              <button type="button" class="btn" id="record-btn" disabled>Messwert in die Versuchsgalerie übernehmen</button>
+              <p class="small-note" id="record-info">Übernehmen ist möglich, sobald eine stabile, positive Spannung angezeigt wird.</p>
+            </li>
+          </ol>
+
+          <div class="options-row">
+            <label class="switch-label"><input type="checkbox" switch id="expert-mode"> Expertenmodus: Konzentrationen variieren (Nernst)</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =============================================================
+         3. TEILCHENEBENE
+         ============================================================= -->
+    <section id="teilchen" class="card">
+      <h2>Teilchenebene: Was passiert in der galvanischen Zelle?</h2>
+      <p class="muted">Modellhafte Vergrößerung der beiden Elektrodenoberflächen. Wasser-Moleküle sind zur Übersicht nicht dargestellt. Die Vorgänge laufen in Zeitlupe ab.</p>
+
+      <div class="particle-toolbar">
+        <label class="switch-label"><input type="checkbox" switch id="show-dl" checked> Elektrochemische Doppelschicht anzeigen</label>
+        <label class="switch-label"><input type="checkbox" switch id="show-labels" checked> Teilchen beschriften</label>
+        <label class="speed-label">Tempo
+          <input type="range" id="sim-speed" min="0.25" max="2" step="0.25" value="1">
+        </label>
+        <button type="button" class="btn btn-secondary btn-sm" id="sim-pause">Pause</button>
+      </div>
+
+      <div class="particle-stage">
+        <canvas id="particle-canvas" width="960" height="540" role="img" aria-describedby="particle-caption">Animierte Teilchenebene der galvanischen Zelle</canvas>
+        <ul class="legend" aria-label="Legende der Teilchensymbole">
+          <li><span class="lg lg-atom"></span> Metall-Atom</li>
+          <li><span class="lg lg-cation"></span> Metall-Kation (hydratisiert)</li>
+          <li><span class="lg lg-anion"></span> Anion (SO₄²⁻ / NO₃⁻)</li>
+          <li><span class="lg lg-electron"></span> Elektron e⁻</li>
+          <li><span class="lg lg-k"></span> K⁺ (Salzbrücke)</li>
+          <li><span class="lg lg-no3"></span> NO₃⁻ (Salzbrücke)</li>
+        </ul>
+      </div>
+
+      <div class="explain-grid">
+        <div class="explain-box" id="particle-caption" aria-live="polite">
+          <h3>Was passiert gerade?</h3>
+          <p>Baue im Labor zuerst eine galvanische Zelle auf.</p>
+        </div>
+        <div class="explain-box">
+          <h3>Wassermodell: Potenziale als Bergseen</h3>
+          <div id="water-model" class="water-model" role="img" aria-label="Wassermodell der Halbzellenpotenziale"></div>
+          <p class="small-note">Je unedler das Redoxpaar, desto höher der „Elektronendruck“ (negatives Potenzial) – der See liegt höher. Die Zellspannung ΔE entspricht dem Höhenunterschied.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =============================================================
+         4. DOPPELSCHICHT-LABOR
+         ============================================================= -->
+    <section id="doppelschicht" class="card">
+      <h2>Doppelschicht-Labor: Wie entsteht das Halbzellenpotenzial?</h2>
+      <div class="dl-intro">
+        <p>Taucht ein Metallblech in die Lösung seiner Ionen, gehen einige Metall-Atome als <strong>Kationen</strong> in Lösung – ihre <strong>Elektronen bleiben im Metall zurück</strong>. Die negativ geladene Elektrode zieht die Kationen an: Es entsteht die <strong>elektrochemische Doppelschicht</strong>. Je stärker die Elektrode aufgeladen ist, desto schwerer lösen sich weitere Atome und desto häufiger werden Kationen wieder abgeschieden – bis sich ein <strong>dynamisches Gleichgewicht</strong> einstellt.</p>
+        <p class="formula-inline">M ⇌ M<sup>z+</sup> + z e⁻</p>
+      </div>
+
+      <div class="dl-workspace">
+        <div class="dl-controls">
+          <label>Halbzelle
+            <select id="dl-metal">
+              <option value="Zn">Zink in ZnSO₄-Lösung</option>
+              <option value="Fe">Eisen in FeSO₄-Lösung</option>
+              <option value="Cu">Kupfer in CuSO₄-Lösung</option>
+              <option value="Ag">Silber in AgNO₃-Lösung</option>
+            </select>
+          </label>
+          <div class="btn-row">
+            <button type="button" class="btn" id="dl-start">Metallblech eintauchen</button>
+            <button type="button" class="btn btn-secondary" id="dl-pause" disabled>Pause</button>
+          </div>
+          <div class="readout-grid dl-readouts">
+            <div class="readout-box"><span class="readout-label">Überschüssige e⁻ im Metall</span><output class="readout-value" id="dl-q">0</output></div>
+            <div class="readout-box"><span class="readout-label">Kationen in der Doppelschicht</span><output class="readout-value" id="dl-ions">0</output></div>
+          </div>
+          <div class="rate-bars" aria-label="Vergleich der Teilchenübergänge">
+            <div class="meter-row"><span class="meter-name">Lösen: M → M<sup>z+</sup> + z e⁻</span><span class="meter-track"><span class="meter-fill fill-dissolve" id="dl-bar-d"></span></span></div>
+            <div class="meter-row"><span class="meter-name">Abscheiden: M<sup>z+</sup> + z e⁻ → M</span><span class="meter-track"><span class="meter-fill fill-deposit" id="dl-bar-r"></span></span></div>
+          </div>
+          <p class="status-box" id="dl-status" aria-live="polite">Wähle eine Halbzelle und tauche das Metallblech ein.</p>
+        </div>
+        <div class="dl-visual">
+          <canvas id="dl-canvas" width="560" height="380" role="img" aria-label="Animation: Bildung der elektrochemischen Doppelschicht an der Metalloberfläche">Animation der Doppelschicht-Bildung</canvas>
+          <canvas id="dl-chart" width="560" height="170" role="img" aria-label="Diagramm: Aufladung der Elektrode über die Zeit">Diagramm der Elektrodenladung</canvas>
+        </div>
+      </div>
+
+      <div class="dl-compare">
+        <h3>Vergleich der Halbzellen im Gleichgewicht</h3>
+        <p class="small-note">Führe den Versuch für alle vier Metalle durch. Die Balken zeigen die Aufladung im Gleichgewicht (Modell).</p>
+        <div id="dl-compare-bars" class="compare-bars"></div>
+      </div>
+
+      <details class="model-note">
+        <summary>Modellgrenzen der Doppelschicht-Darstellung</summary>
+        <ul class="compact-list">
+          <li>Die Anzahl der übergehenden Teilchen ist in Wirklichkeit winzig – die Konzentration in der Lösung ändert sich dadurch nicht messbar.</li>
+          <li>Das Potenzial einer einzelnen Halbzelle ist <strong>nicht messbar</strong>. Messbar ist nur der Potenzialunterschied zwischen zwei Halbzellen (Zellspannung).</li>
+          <li>In manchen Schulbüchern wird für edle Metalle (Cu, Ag) angenommen, dass die Abscheidung überwiegt und sich die Elektrode <em>positiv</em> auflädt. Für die Zellspannung ist nur entscheidend: Die Elektrode des unedleren Metalls ist <strong>stärker negativ</strong> geladen als die des edleren.</li>
+          <li>Hydrathüllen, Anionen in der Doppelschicht und die diffuse Schicht (Gouy-Chapman-Stern-Modell) sind vereinfacht.</li>
+        </ul>
+      </details>
+    </section>
+
+    <!-- =============================================================
+         5. VERSUCHSGALERIE
+         ============================================================= -->
+    <section id="galerie" class="card">
+      <h2>Versuchsgalerie: Messprotokoll</h2>
+      <p class="muted">Übernommene Messwerte erscheinen hier. Bestimme für jede Zelle den Minuspol (Anode) und den Pluspol (Kathode).</p>
+      <div class="table-wrap">
+        <table class="gallery-table">
+          <caption class="visually-hidden">Messwerte der sechs galvanischen Zellen</caption>
+          <thead>
+            <tr><th scope="col">Zelle (Halbzellen)</th><th scope="col">gemessene Spannung U</th><th scope="col">Minuspol (Anode)</th><th scope="col">Pluspol (Kathode)</th><th scope="col">Rückmeldung</th></tr>
+          </thead>
+          <tbody id="gallery-body"></tbody>
+        </table>
+      </div>
+      <div id="extra-measurements"></div>
+    </section>
+
+    <!-- =============================================================
+         6. AUSWERTUNG
+         ============================================================= -->
+    <section id="auswertung" class="card">
+      <h2>Auswertung</h2>
+
+      <article class="task-card" id="task-redoxreihe">
+        <h3>Aufgabe 1: Redoxreihe aufstellen</h3>
+        <p>Ordne die vier Redoxpaare anhand deiner Messungen vom <strong>unedelsten</strong> (gibt am leichtesten Elektronen ab) zum <strong>edelsten</strong>.</p>
+        <div class="order-row" id="order-row"></div>
+        <div class="btn-row"><button type="button" class="btn btn-sm" data-check="order">Überprüfen</button></div>
+        <p class="feedback" id="fb-order" aria-live="polite"></p>
+      </article>
+
+      <article class="task-card" id="task-additiv">
+        <h3>Aufgabe 2: Spannungen addieren sich</h3>
+        <p id="additiv-text">Miss zuerst die Zellen Zn/Cu, Cu/Ag und Zn/Ag.</p>
+        <label class="inline-input">ΔE(Zn/Cu) + ΔE(Cu/Ag) =
+          <input type="text" inputmode="decimal" id="additiv-input" size="6" autocomplete="off"> V
+        </label>
+        <div class="btn-row"><button type="button" class="btn btn-sm" data-check="additiv">Überprüfen</button></div>
+        <p class="feedback" id="fb-additiv" aria-live="polite"></p>
+      </article>
+
+      <article class="task-card" id="task-saetze">
+        <h3>Aufgabe 3: Auswertung mit Satzbausteinen formulieren</h3>
+        <p>Wähle eine deiner gemessenen Zellen und vervollständige die Satzbausteine der Fachsprachen-Box.</p>
+        <label>Zelle <select id="sentence-cell"></select></label>
+        <div id="sentence-area" class="sentence-area"></div>
+        <div class="btn-row"><button type="button" class="btn btn-sm" data-check="sentences">Überprüfen</button></div>
+        <p class="feedback" id="fb-sentences" aria-live="polite"></p>
+      </article>
+
+      <article class="task-card" id="task-dl">
+        <h3>Aufgabe 4: Zellspannung mit Doppelschichten erklären</h3>
+        <p>Erkläre mithilfe der elektrochemischen Doppelschichten, warum zwischen einer Zink- und einer Kupfer-Halbzelle eine Spannung von etwa 1,1 V entsteht und in welche Richtung die Elektronen beim Schließen des Stromkreises fließen.</p>
+        <textarea id="dl-notes" rows="5" placeholder="Deine Erklärung …"></textarea>
+        <details>
+          <summary>Musterlösung anzeigen</summary>
+          <div class="solution">
+            <p>In beiden Halbzellen stellt sich ein Gleichgewicht M ⇌ M<sup>z+</sup> + z e⁻ ein. Zink ist unedler als Kupfer: Zink-Atome gehen leichter als Zn²⁺-Ionen in Lösung, deshalb bleiben im Zinkblech <strong>mehr Elektronen</strong> zurück als im Kupferblech. Die Doppelschicht an der Zinkelektrode ist stärker ausgeprägt, das Zinkblech hat das <strong>niedrigere (negativere) Potenzial</strong>.</p>
+            <p>Der Potenzialunterschied zwischen den beiden Doppelschichten ist die Zellspannung ΔE = E(Kathode) − E(Anode) ≈ 0,31 V − (−0,79 V) ≈ 1,10 V (bei 0,1 mol/L).</p>
+            <p>Wird der Stromkreis geschlossen, fließen Elektronen im äußeren Kreis vom Zinkblech (Elektronenüberschuss, <strong>Minuspol, Anode</strong>) zum Kupferblech (<strong>Pluspol, Kathode</strong>). Dadurch werden beide Gleichgewichte gestört: An der Anode gehen weitere Zn-Atome in Lösung (Oxidation), an der Kathode werden Cu²⁺-Ionen zu Cu reduziert. Im inneren Kreis wandern NO₃⁻-Ionen der Salzbrücke zur Anode und K⁺-Ionen zur Kathode und sorgen für den Ladungsausgleich.</p>
+          </div>
+        </details>
+      </article>
+    </section>
+
+    <!-- =============================================================
+         7. FACHSPRACHEN-BOX
+         ============================================================= -->
+    <section id="fachsprache" class="card">
+      <h2>Fachsprachen-Box: Die galvanische Zelle</h2>
+
+      <article class="task-card" id="task-match">
+        <h3>Fachbegriffe zuordnen</h3>
+        <p>Ordne jedem Fachbegriff die passende Erklärung zu.</p>
+        <div id="match-area" class="match-area"></div>
+        <div class="btn-row"><button type="button" class="btn btn-sm" data-check="match">Überprüfen</button></div>
+        <p class="feedback" id="fb-match" aria-live="polite"></p>
+      </article>
+
+      <h3>1. Aufbau &amp; Bauteile der galvanischen Zelle</h3>
+      <div class="glossary" id="glossary-1"></div>
+      <h3>2. Elektrische Größen &amp; der Stromkreis</h3>
+      <div class="glossary" id="glossary-2"></div>
+      <h3>3. Formulierungshilfen für die Versuchsauswertung</h3>
+      <ul class="phrase-list">
+        <li>„Da [Metall A] unedler ist als [Metall B], besitzt die [Metall A]-Halbzelle das niedrigere elektrische Potenzial und bildet in dieser Kombination die Anode (den Minuspol).“</li>
+        <li>„Zwischen der [Metall A]-Halbzelle und der [Metall B]-Halbzelle besteht ein Potenzialunterschied, den wir als elektrische Spannung (Zellspannung U bzw. ΔE) von [Messwert] V messen.“</li>
+        <li>„Im äußeren Stromkreis fließen die Elektronen durch das Kabel von der Anode zur Kathode, während im inneren Stromkreis Ionen durch die Salzbrücke wandern, um den Ladungsausgleich sicherzustellen.“</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Schule Birklehof · Chemie Kursstufe · Virtuelles Labor „Galvanische Zellen“ · Standardpotenziale nach Schulbuch-Tabelle (25 °C); Messwerte mit simulierter Messabweichung.</p>
+  </footer>
+</body>
+</html>
