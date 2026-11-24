@@ -1269,6 +1269,24 @@ body.expert .expert-only { display: flex; }
   border-color: var(--bad) !important;
   background: var(--bad-bg) !important;
 }
+.nernst-form select {
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  padding: 0.28rem 0.45rem;
+  border-radius: 5px;
+  border: 1.5px solid #7f97ad;
+  background: #fff;
+  min-block-size: 36px;
+}
+.nernst-formula-reveal {
+  margin-top: 0.75rem;
+}
+.nernst-formula-reveal summary {
+  font-weight: 700;
+  color: var(--primary-dark);
+  cursor: pointer;
+}
 
 .nernst-formula-box {
   background: #f0f7fb;

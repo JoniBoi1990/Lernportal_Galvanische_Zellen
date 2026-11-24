@@ -966,7 +966,7 @@
     let rightDots = '';
     for (let i = 0; i < 15; i++) {
       const [dx, dy] = dotCoords[i];
-      rightDots += `<circle cx="${dx + 250}" cy="${dy}" r="3.4" fill="#9aa3ae" stroke="#5e6873" stroke-width="0.8"/>`;
+      rightDots += `<circle cx="${498 - dx}" cy="${dy}" r="3.4" fill="#9aa3ae" stroke="#5e6873" stroke-width="0.8"/>`;
     }
 
     const isAnode = pt.anodeSide === 'test';
@@ -1011,19 +1011,14 @@
   function renderNernstTable() {
     const body = $('#nernst-table-body');
     const selected = state.nernst.selectedC;
-    let prevU = null;
-    const rows = C.NERNST_SERIES.map((c) => {
+    const rows = C.NERNST_SERIES.map((c, idx) => {
       const k = nernstKey(c);
       const saved = state.nernst.measured[k];
       const pt = C.concentrationCellPoint('Ag', c, 1);
       const isActive = Math.abs(c - selected) < 1e-12;
-      let deltaU = '—';
-      if (saved) {
-        if (prevU !== null) {
-          deltaU = '+' + C.fmtNum(saved.U - prevU, 3) + ' V';
-        }
-        prevU = saved.U;
-      }
+      const prevC = idx > 0 ? C.NERNST_SERIES[idx - 1] : null;
+      const prevSaved = prevC !== null ? state.nernst.measured[nernstKey(prevC)] : null;
+      const deltaU = saved && prevSaved ? '+' + C.fmtNum(saved.U - prevSaved.U, 3) + ' V' : '—';
       return `<tr class="${isActive ? 'is-active' : ''}">
         <th scope="row">${esc(C.fmtC(c))} (${esc(C.fmtSci(c))})</th>
         <td class="num">${esc(C.fmtNum(pt.logC, 0))}</td>
@@ -1196,7 +1191,7 @@
         s += `<line x1="${xPx(lx1)}" y1="${yPx(ly1)}" x2="${xPx(lx2)}" y2="${yPx(ly2)}" stroke="#006699" stroke-width="2.2"/>`;
 
         // Steigungsdreieck über 1 Dekade
-        const tx1 = mode === 'E' ? -3 : 1;
+        const tx1 = mode === 'E' ? -3 : 2;
         const tx2 = tx1 + 1;
         const ty1 = reg.slope * tx1 + reg.intercept;
         const ty2 = reg.slope * tx2 + reg.intercept;
@@ -1297,10 +1292,16 @@
     const all = mOk && bOk && sOk && lOk;
     state.nernst.deriveOk = all;
     if (all) {
+      const det = $('#nernst-formula-details');
+      if (det) det.open = true;
       setFeedback('nernst-derive', true, '✔ Richtig hergeleitet! Die Geradensteigung beträgt rund 0,059 V pro Dekade, der Achsenabschnitt bei lg c = 0 (c = 1 mol/L) entspricht E° = +0,80 V. Daraus folgt E(Ag / Ag⁺) = E°(Ag / Ag⁺) + 0,059 V · lg c(Ag⁺).');
     } else {
       const hints = [];
-      if (!mOk) hints.push('Steigung m ≈ 0,059 V (Spannungsänderung pro 1:10-Verdünnungsschritt)');
+      if (!mOk) {
+        hints.push(m !== null && m >= 55 && m <= 63
+          ? 'Steigung m in Volt angeben (0,059 V statt 59 mV)'
+          : 'Steigung m ≈ 0,059 V (Spannungsänderung pro 1:10-Verdünnungsschritt)');
+      }
       if (!bOk) hints.push('Achsenabschnitt b ≈ 0,80 V (Standardpotenzial bei c = 1 mol/L)');
       if (!sOk) hints.push('Vorzeichen: Da lg c für c < 1 mol/L negativ ist, steht vor 0,059 V · lg c ein Pluszeichen');
       if (!lOk) hints.push('Logarithmus-Term: In der halblogarithmischen Geraden ist x = lg c(Ag⁺)');
@@ -1318,6 +1319,8 @@
     state.nernst.exCuOk = ok;
     if (ok) {
       setFeedback('nernst-ex-cu', true, '✔ Richtig! Für Cu (z = 2) beträgt der Faktor 0,059 V / 2 = 0,0295 V. Bei c = 10⁻³ mol/L gilt ΔE = 3 · 0,0295 V = 0,0885 V ≈ 0,089 V.');
+    } else if (v !== null && v >= 87 && v <= 91) {
+      setFeedback('nernst-ex-cu', false, '✘ Bitte in Volt statt Millivolt angeben (0,089 V statt 89 mV).');
     } else {
       setFeedback('nernst-ex-cu', false, '✘ Prüfe deine Rechnung: Bei Kupfer (Cu ⇌ Cu²⁺ + 2 e⁻) ist z = 2. Teile 0,059 V durch z = 2 und multipliziere mit |lg(0,001)| = 3.');
     }
@@ -1521,6 +1524,8 @@
       renderNernstTable();
       renderNernstCharts();
       $('#nernst-status').textContent = 'Wähle eine Konzentration und übernimm den Messwert in die Tabelle.';
+      const det = $('#nernst-formula-details');
+      if (det) det.open = false;
       ['#nernst-q1', '#nernst-q2', '#nernst-q3', '#nernst-slope-in', '#nernst-intercept-in', '#nernst-formula-sign', '#nernst-formula-log', '#nernst-ex-cu', '#nernst-ex-unknown'].forEach((s) => clearInvalid($(s)));
       renderProgress();
       ['order', 'additiv', 'sentences', 'match', 'nernst-qual', 'nernst-derive', 'nernst-ex-cu', 'nernst-ex-unknown'].forEach((id) => setFeedback(id, null, ''));

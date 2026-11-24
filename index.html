@@ -599,13 +599,16 @@
           <div class="btn-row"><button type="submit" class="btn btn-sm">Überprüfen</button></div>
         </form>
         <p class="feedback" id="fb-nernst-derive" aria-live="polite"></p>
-        <div class="nernst-formula-box" id="nernst-formula-summary">
-          <div class="formula-title">Hergeleitete Nernst-Gleichung für Silber (<em>z</em> = 1, <em>ϑ</em> = 25 °C)</div>
-          <div class="formula-main">
-            <em>E</em>(Ag / Ag⁺) = <em>E°</em>(Ag / Ag⁺) + 0,059 V · lg <em>c</em>(Ag⁺)
+        <details id="nernst-formula-details" class="nernst-formula-reveal">
+          <summary>Hergeleitete Nernst-Gleichung (Zusammenfassung) anzeigen</summary>
+          <div class="nernst-formula-box" id="nernst-formula-summary">
+            <div class="formula-title">Hergeleitete Nernst-Gleichung für Silber (<em>z</em> = 1, <em>ϑ</em> = 25 °C)</div>
+            <div class="formula-main">
+              <em>E</em>(Ag / Ag⁺) = <em>E°</em>(Ag / Ag⁺) + 0,059 V · lg <em>c</em>(Ag⁺)
+            </div>
+            <p class="small-note">Hinweis: Da für <em>c</em> &lt; 1 mol/L gilt lg <em>c</em> &lt; 0, sinkt <em>E</em> bei Verdünnung mit dem Pluszeichen automatisch unter <em>E°</em> ab (z. B. bei <em>c</em> = 0,01 mol/L: lg 0,01 = −2 → <em>E</em> = 0,80 V − 0,118 V = +0,682 V).</p>
           </div>
-          <p class="small-note">Hinweis: Da für <em>c</em> &lt; 1 mol/L gilt lg <em>c</em> &lt; 0, sinkt <em>E</em> bei Verdünnung mit dem Pluszeichen automatisch unter <em>E°</em> ab (z. B. bei <em>c</em> = 0,01 mol/L: lg 0,01 = −2 → <em>E</em> = 0,80 V − 0,118 V = +0,682 V).</p>
-        </div>
+        </details>
       </article>
 
       <h3>4. Verallgemeinerung auf mehrwertige Metalle (<em>z</em> &gt; 1) &amp; Vertiefung</h3>
