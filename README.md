@@ -43,7 +43,7 @@ Dieses interaktive HTML5-Portal ermöglicht Schülerinnen und Schülern das voll
    - **Fachbegriffe-Matching:** 15 Kernbegriffe aus der Fachsprachen-Box mit Sofortrückmeldung.
 
 7. **Ableitung der Nernst-Gleichung (Silber-Konzentrationszellen):**
-   - **Messreihe aus 0,1 / 0,01 / 0,001 mol/L:** Kombinieren zweier Silber-Halbzellen unterschiedlicher AgNO₃-Konzentration ($\text{Ag} \mid \text{AgNO}_3\ (c_1) \parallel \text{AgNO}_3\ (c_2) \mid \text{Ag}$) samt $\text{KNO}_3$-Salzbrücke und 1-mV-genauer Spannungsanzeige.
+   - **Messreihe aus 1 / 0,1 / 0,01 / 0,001 mol/L (7 Kombinationen):** Kombinieren zweier Silber-Halbzellen unterschiedlicher AgNO₃-Konzentration ($\text{Ag} \mid \text{AgNO}_3\ (c_1) \parallel \text{AgNO}_3\ (c_2) \mid \text{Ag}$) samt $\text{KNO}_3$-Salzbrücke und 1-mV-genauer Spannungsanzeige (`1 mol/L` als virtuelle Erweiterung zur `0,1 M`-Verdünnungsreihe).
    - **Lineare vs. logarithmische Auswertung:** Direktes Diagramm $U$ gegen das Verhältnis $c_2 / c_1$ im Vergleich zu $U$ gegen $\lg(c_2 / c_1)$ mit live berechneter Ausgleichsgerade, Steigungsdreieck ($x \approx 0{,}059\,\text{V}$) und optionaler Vergleichsgerade für Kupfer ($z = 2$).
    - **Auswertung & Ziel-Experiment:** Begründung über das Prinzip von Le Chatelier, Bestimmung des Proportionalitätsfaktors $x$ in $U = \Delta E = 0{,}059\,\text{V} \cdot \lg(c_2 / c_1)$ sowie Konzentrationsbestimmung einer **alten Silbernitrat-Lösung** ($c_{\text{alt}} \approx 0{,}020\,\text{mol/L}$) gegen wählbare frische Referenzhalbzellen.
    - **Brücke zur allgemeinen Nernst-Gleichung:** Algebraischer Nachweis, warum $E^\circ(\text{Ag}/\text{Ag}^+)$ bei Silber gegen Silber herausfällt, Verallgemeinerung auf $E = E^\circ + \frac{0{,}059\,\text{V}}{z} \cdot \lg c(\text{M}^{z+})$ und Transferaufgabe zu Kupfer ($z = 2$).
@@ -52,13 +52,13 @@ Dieses interaktive HTML5-Portal ermöglicht Schülerinnen und Schülern das voll
 
 ## 📂 Struktur der Dateien
 
-* `index.html`: Semantisches, barrierefreies HTML5-Dokument mit ARIA-Live-Regionen, Skip-Link und Sticky-Navigation.
-* `style.css`: Birklehof-Designsystem, responsive Grids, moderne Switches, Canvas-Container und Print-Layout (`@media print`).
-* `chem.js`: Fachliche Logik (Nernst-Potenziale, Zellanalyse, Reaktionsgleichungen, Messwertberechnung mit realistischer Streuung, Doppelschicht-Raten); lauffähig in Browser und Node.js.
-* `particles.js`: Performance-optimierte Canvas-Rendering-Engine für die Teilchenebene und das Doppelschicht-Labor (inkl. `prefers-reduced-motion` und `IntersectionObserver`-Pausierung).
-* `app.js`: Interaktive Steuerung, DOM-Bindung, Aufgabenüberprüfung, Versuchsgalerie und `localStorage`-Persistenz.
-* `tests/chem.test.cjs`: Automatisierte Unit-Tests für chemische Korrektheit.
-* `assets/`: Offizielle Birklehof- und MINT-Logos.
+- `index.html`: Semantisches, barrierefreies HTML5-Dokument mit ARIA-Live-Regionen, Skip-Link und Sticky-Navigation.
+- `style.css`: Birklehof-Designsystem, responsive Grids, moderne Switches, Canvas-Container und Print-Layout (`@media print`).
+- `chem.js`: Fachliche Logik (Nernst-Potenziale, Zellanalyse, Reaktionsgleichungen, Messwertberechnung mit realistischer Streuung, Doppelschicht-Raten); lauffähig in Browser und Node.js.
+- `particles.js`: Performance-optimierte Canvas-Rendering-Engine für die Teilchenebene und das Doppelschicht-Labor (inkl. `prefers-reduced-motion` und `IntersectionObserver`-Pausierung).
+- `app.js`: Interaktive Steuerung, DOM-Bindung, Aufgabenüberprüfung, Versuchsgalerie und `localStorage`-Persistenz.
+- `tests/chem.test.cjs`: Automatisierte Unit-Tests für chemische Korrektheit.
+- `assets/`: Offizielle Birklehof- und MINT-Logos.
 
 ---
 

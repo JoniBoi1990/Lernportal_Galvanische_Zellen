@@ -46,12 +46,15 @@
   const ORDER = ['Zn', 'Fe', 'Cu', 'Ag'];
   const CONCENTRATIONS = [1, 0.1, 0.01, 0.001, 0.0001];
   const NERNST_SERIES = [1, 0.1, 0.01, 0.001, 0.0001];
-  const SILVER_CONCS = [0.1, 0.01, 0.001];
+  const SILVER_CONCS = [1, 0.1, 0.01, 0.001];
   const SILVER_CELL_COMBOS = [
     { id: 'eq', c1: 0.1, c2: 0.1, label: '0,1 M ‖ 0,1 M (Vergleich)' },
+    { id: '0.1_1', c1: 0.1, c2: 1, label: '0,1 M ‖ 1 M' },
     { id: '0.01_0.1', c1: 0.01, c2: 0.1, label: '0,01 M ‖ 0,1 M' },
     { id: '0.001_0.01', c1: 0.001, c2: 0.01, label: '0,001 M ‖ 0,01 M' },
+    { id: '0.01_1', c1: 0.01, c2: 1, label: '0,01 M ‖ 1 M' },
     { id: '0.001_0.1', c1: 0.001, c2: 0.1, label: '0,001 M ‖ 0,1 M' },
+    { id: '0.001_1', c1: 0.001, c2: 1, label: '0,001 M ‖ 1 M' },
   ];
   const OLD_AG_CONC = 0.02;
   const DEFAULT_C = 0.1;

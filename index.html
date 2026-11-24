@@ -67,7 +67,7 @@
             <li><strong>Teilchenebene:</strong> Beobachte, was an den Elektroden passiert. Schalte auf <em>Verbraucher (Motor)</em>, um Elektronen- und Ionenwanderung zu sehen, und blende die <em>Doppelschicht</em> ein.</li>
             <li><strong>Doppelschicht-Labor:</strong> Tauche ein einzelnes Metallblech ein und verfolge, wie sich das dynamische Gleichgewicht einstellt.</li>
             <li><strong>Galerie &amp; Auswertung:</strong> Übernimm deine Messwerte, bestimme Minus- und Pluspol, stelle die Redoxreihe auf und formuliere mit der Fachsprachen-Box.</li>
-            <li><strong>Nernst-Gleichung:</strong> Bestimme die Zellspannungen der Silber-Konzentrationszellen (0,1 M / 0,01 M / 0,001 M), ermittle den Proportionalitätsfaktor <em>x</em> und bestimme damit die Konzentration der alten Silbernitrat-Lösung.</li>
+            <li><strong>Nernst-Gleichung:</strong> Bestimme die Zellspannungen der Silber-Konzentrationszellen (0,1 M / 0,01 M / 0,001 M sowie virtuell 1 M), ermittle den Proportionalitätsfaktor <em>x</em> und bestimme damit die Konzentration der alten Silbernitrat-Lösung.</li>
           </ol>
           <p class="muted">Alle Messwerte und Antworten werden lokal in deinem Browser gespeichert.</p>
         </div>
@@ -409,21 +409,21 @@
     <section id="nernst" class="card">
       <h2>Nernst-Gleichung: Ableitung aus der Silber-Konzentrationszelle</h2>
       <div class="goal-card nernst-intro">
-        <p><strong>Ziel:</strong> Bestimmt die Zellspannung galvanischer Zellen, die ihr aus Silber-Halbzellen mit verschiedenen Elektrolyt-Konzentrationen (<strong>0,1 mol/L</strong>, <strong>0,01 mol/L</strong>, <strong>0,001 mol/L</strong>) baut. Ermittelt anschließend den Proportionalitätsfaktor <em>x</em> und bestimmt damit die tatsächliche Konzentration einer alten Silbernitrat-Lösung.</p>
+        <p><strong>Ziel:</strong> Bestimmt die Zellspannung galvanischer Zellen, die ihr aus Silber-Halbzellen mit verschiedenen Elektrolyt-Konzentrationen (<strong>0,1 mol/L</strong>, <strong>0,01 mol/L</strong>, <strong>0,001 mol/L</strong> – sowie zusätzlich virtuell <strong>1 mol/L</strong>) baut. Ermittelt anschließend den Proportionalitätsfaktor <em>x</em> und bestimmt damit die tatsächliche Konzentration einer alten Silbernitrat-Lösung.</p>
         <ol class="todo-list nernst-todo">
-          <li>Elektrolyt (0,1 mol/L) ansetzen und 1:10-Verdünnungen (0,01 mol/L und 0,001 mol/L) herstellen</li>
+          <li>Elektrolyt (0,1 mol/L) ansetzen und 1:10-Verdünnungen (0,01 mol/L und 0,001 mol/L) herstellen (1 mol/L als virtuelle Erweiterung)</li>
           <li>Silber-Halbzellen aus Silberblech und AgNO₃-Lösung vorbereiten</li>
           <li>Halbzellen über Voltmeter verbinden, sodass eine positive Spannung gemessen wird (rotes Kabel V an Pluspol <em>c₂</em>, COM an Minuspol <em>c₁</em>)</li>
           <li>Stromkreis durch KNO₃-Salzbrücke schließen (<strong>kein KCl</strong>, sonst fällt AgCl↓ aus) und in der Messtabelle dokumentieren</li>
         </ol>
       </div>
 
-      <h3>1. Messreihe der Silber-Konzentrationszellen (0,1 M · 0,01 M · 0,001 M)</h3>
+      <h3>1. Messreihe der Silber-Konzentrationszellen (1 M · 0,1 M · 0,01 M · 0,001 M)</h3>
       <div class="nernst-lab-grid">
         <div class="apparatus-panel">
           <div class="panel-header">
             <h4>Versuchsaufbau (25 °C)</h4>
-            <span class="badge" id="nernst-badge">0 / 4 gemessen</span>
+            <span class="badge" id="nernst-badge">0 / 7 gemessen</span>
           </div>
           <div class="svg-stage nernst-stage" id="nernst-apparatus"></div>
           <div class="readout-grid">
@@ -448,6 +448,10 @@
               <legend>Becherglas links: <em>c</em>(Ag⁺)</legend>
               <div class="nernst-radio-grid">
                 <div class="nernst-radio-item">
+                  <input type="radio" id="nernst-cl-1" name="nernst-c-left" value="1">
+                  <label for="nernst-cl-1">1 mol/L (10⁰, virtuell)</label>
+                </div>
+                <div class="nernst-radio-item">
                   <input type="radio" id="nernst-cl-0_1" name="nernst-c-left" value="0.1">
                   <label for="nernst-cl-0_1">0,1 mol/L (10⁻¹)</label>
                 </div>
@@ -465,6 +469,10 @@
               <legend>Becherglas rechts: <em>c</em>(Ag⁺)</legend>
               <div class="nernst-radio-grid">
                 <div class="nernst-radio-item">
+                  <input type="radio" id="nernst-cr-1" name="nernst-c-right" value="1">
+                  <label for="nernst-cr-1">1 mol/L (10⁰, virtuell)</label>
+                </div>
+                <div class="nernst-radio-item">
                   <input type="radio" id="nernst-cr-0_1" name="nernst-c-right" value="0.1" checked>
                   <label for="nernst-cr-0_1">0,1 mol/L (10⁻¹)</label>
                 </div>
@@ -481,7 +489,7 @@
           </div>
           <div class="btn-row">
             <button type="button" class="btn" id="nernst-record">Messpunkt in Tabelle übernehmen</button>
-            <button type="button" class="btn btn-secondary btn-sm" id="nernst-record-all">Alle 4 Kombinationen messen</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="nernst-record-all">Alle 7 Kombinationen messen</button>
             <button type="button" class="btn btn-ghost btn-sm" id="nernst-open-lab">Im Hauptlabor öffnen (Teilchenebene)</button>
           </div>
           <p class="status-box" id="nernst-status" aria-live="polite">Wähle links und rechts zwei AgNO₃-Konzentrationen und übernimm die Zellspannung in die Tabelle.</p>
@@ -524,7 +532,7 @@
         <figure class="nernst-figure">
           <figcaption class="figure-title">Diagramm A: <em>U</em> = Δ<em>E</em> gegen das lineare Verhältnis <em>c₂</em> / <em>c₁</em></figcaption>
           <div id="nernst-chart-linear" class="nernst-chart-stage"></div>
-          <p class="small-note">Keine lineare Abhängigkeit von <em>c₂</em> / <em>c₁</em>: Verzehnfacht sich das Verhältnis (10:1 → 100:1), steigt <em>U</em> nicht um das Zehnfache, sondern verdoppelt sich lediglich (≈ 0,059 V → ≈ 0,118 V).</p>
+          <p class="small-note">Keine lineare Abhängigkeit von <em>c₂</em> / <em>c₁</em>: Verzehnfacht sich das Verhältnis (10:1 → 100:1 → 1000:1), steigt <em>U</em> nicht um das Zehnfache, sondern in gleichen Schritten (≈ 0,059 V → ≈ 0,118 V → ≈ 0,177 V).</p>
         </figure>
         <figure class="nernst-figure">
           <figcaption class="figure-title">Diagramm B: <em>U</em> = Δ<em>E</em> gegen lg(<em>c₂</em> / <em>c₁</em>)</figcaption>
@@ -625,6 +633,10 @@
           <fieldset class="nernst-conc-choice nernst-old-ref-choice">
             <legend>Frische Referenzhalbzelle (rechts) gegen alte AgNO₃-Lösung (links)</legend>
             <div class="nernst-radio-grid">
+              <div class="nernst-radio-item">
+                <input type="radio" id="nernst-old-ref-1" name="nernst-old-ref" value="1">
+                <label for="nernst-old-ref-1">1 mol/L (frisch, virtuell)</label>
+              </div>
               <div class="nernst-radio-item">
                 <input type="radio" id="nernst-old-ref-0_1" name="nernst-old-ref" value="0.1" checked>
                 <label for="nernst-old-ref-0_1">0,1 mol/L (frisch)</label>

@@ -167,9 +167,9 @@ test('overall für Konzentrationszelle formatiert Konzentrationsausgleich', () =
   assert.equal(C.overall('Ag', 'Ag', 0.001, 1), 'Ag⁺ (c = 1 mol/L) → Ag⁺ (c = 0,001 mol/L)');
 });
 
-test('SILVER_CONCS, SILVER_CELL_COMBOS und concentrationCellPair decken Unterrichtsgang ab', () => {
-  assert.deepEqual(C.SILVER_CONCS, [0.1, 0.01, 0.001]);
-  assert.equal(C.SILVER_CELL_COMBOS.length, 4);
+test('SILVER_CONCS, SILVER_CELL_COMBOS und concentrationCellPair decken Unterrichtsgang + 1 M ab', () => {
+  assert.deepEqual(C.SILVER_CONCS, [1, 0.1, 0.01, 0.001]);
+  assert.equal(C.SILVER_CELL_COMBOS.length, 7);
   assert.equal(C.OLD_AG_CONC, 0.02);
 
   const eq = C.concentrationCellPair('Ag', 0.1, 0.1);
@@ -193,9 +193,21 @@ test('SILVER_CONCS, SILVER_CELL_COMBOS und concentrationCellPair decken Unterric
   near(p100.logRatio, 2, 1e-9);
   near(p100.theoDeltaE, 0.118, 1e-6);
   assert.ok(p100.factorX >= 0.058 && p100.factorX <= 0.060, `factorX=${p100.factorX}`);
+
+  const p1000 = C.concentrationCellPair('Ag', 0.001, 1);
+  assert.equal(p1000.comboId, '0.001_1');
+  near(p1000.ratio, 1000, 1e-9);
+  near(p1000.logRatio, 3, 1e-9);
+  near(p1000.theoDeltaE, 0.177, 1e-6);
+  assert.ok(p1000.factorX >= 0.058 && p1000.factorX <= 0.060, `factorX=${p1000.factorX}`);
 });
 
 test('oldSilverCell zeigt Polwechsel zwischen 0,1 M und 0,01 M und liefert c_alt ≈ 0,020 mol/L', () => {
+  const r1 = C.oldSilverCell(1);
+  assert.equal(r1.oldIsAnode, true);
+  assert.ok(r1.U >= 0.098 && r1.U <= 0.102, `gegen 1 M: U=${r1.U}`);
+  assert.ok(r1.estimatedC >= 0.018 && r1.estimatedC <= 0.022, `est=${r1.estimatedC}`);
+
   const r01 = C.oldSilverCell(0.1);
   assert.equal(r01.oldIsAnode, true);
   assert.ok(r01.U >= 0.039 && r01.U <= 0.043, `gegen 0,1 M: U=${r01.U}`);

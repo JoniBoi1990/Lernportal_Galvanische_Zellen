@@ -374,7 +374,7 @@ test('Alte localStorage-Daten werden migriert und starten im 0,01 M | 0,1 M Unte
     gallery: {},
   });
   const { doc } = mountApp({ 'gz-portal-v1': legacy });
-  assert.equal(doc.querySelector('#nernst-badge').textContent, '0 / 4 gemessen');
+  assert.equal(doc.querySelector('#nernst-badge').textContent, '0 / 7 gemessen');
   assert.equal(doc.querySelector('#progress-text').textContent, '0 / 16 erledigt');
   assert.equal(doc.querySelector('#nernst-u').textContent, '0,059 V');
   assert.equal(doc.querySelector('#nernst-ratio').textContent, '10 : 1 (lg = 1)');
@@ -389,28 +389,35 @@ test('Apparatur-SVG spiegelt Ionendichte sauber ohne Elektroden-Überlappung', (
   assert.equal(svg.getAttribute('role'), 'img');
   assert.ok(svg.querySelector('title').textContent.includes('Silber-Konzentrationszelle'));
   const circles = svg.querySelectorAll('circle').filter((c) => c.getAttribute('r') === '3.4');
-  // 6 Ionen links (0,01 M) + 14 Ionen rechts (0,1 M) = 20
-  assert.equal(circles.length, 20);
+  // 6 Ionen links (0,01 M) + 11 Ionen rechts (0,1 M) = 17
+  assert.equal(circles.length, 17);
   const rightElectrodeOverlap = circles.filter((c) => {
     const cx = Number(c.getAttribute('cx'));
     return cx >= 394 && cx <= 416;
   });
   assert.equal(rightElectrodeOverlap.length, 0, 'keine Ionen auf rechter Elektrode');
 
+  // Virtuelle 1 M rechts + 0,001 M links -> 2 + 16 = 18 Ionen, Verhältnis 1000 : 1
+  doc.querySelector('input[name="nernst-c-left"][value="0.001"]').click();
+  doc.querySelector('input[name="nernst-c-right"][value="1"]').click();
+  const circles1M = doc.querySelector('#nernst-apparatus svg').querySelectorAll('circle').filter((c) => c.getAttribute('r') === '3.4');
+  assert.equal(circles1M.length, 18);
+  assert.equal(circles1M.filter((c) => Number(c.getAttribute('cx')) >= 394 && Number(c.getAttribute('cx')) <= 416).length, 0);
+  assert.equal(doc.querySelector('#nernst-ratio').textContent, '1000 : 1 (lg = 3)');
+
   // Konzentration links > rechts dreht Polung dynamisch um
-  doc.querySelector('input[name="nernst-c-left"][value="0.1"]').click();
+  doc.querySelector('input[name="nernst-c-left"][value="1"]').click();
   doc.querySelector('input[name="nernst-c-right"][value="0.001"]').click();
   assert.equal(doc.querySelector('#nernst-role').textContent, 'Rechts Anode (−) · Links Kathode (+)');
-  assert.equal(doc.querySelector('#nernst-ratio').textContent, '100 : 1 (lg = 2)');
 });
 
-test('4er-Messreihe der Silber-Konzentrationszellen und Diagramme funktionieren end-to-end', () => {
+test('7er-Messreihe der Silber-Konzentrationszellen und Diagramme funktionieren end-to-end', () => {
   const { doc } = mountApp();
   doc.querySelector('#nernst-record-all').click();
-  assert.equal(doc.querySelector('#nernst-badge').textContent, '4 / 4 gemessen');
+  assert.equal(doc.querySelector('#nernst-badge').textContent, '7 / 7 gemessen');
 
   const rows = doc.querySelectorAll('#nernst-table-body tr');
-  assert.equal(rows.length, 4);
+  assert.equal(rows.length, 7);
   assert.equal(rows[0].querySelectorAll('td')[3].textContent, '— (lg = 0)');
   for (let i = 1; i < rows.length; i++) {
     const fx = rows[i].querySelectorAll('td')[3].textContent;
@@ -421,7 +428,7 @@ test('4er-Messreihe der Silber-Konzentrationszellen und Diagramme funktionieren 
   const svgB = doc.querySelector('#nernst-chart-log svg');
   assert.ok(svgA && svgB);
   const summary = doc.querySelector('#nernst-reg-summary').textContent;
-  assert.match(summary, /Ausgleichsgerade \(n = 4\):/);
+  assert.match(summary, /Ausgleichsgerade \(n = 7\):/);
   assert.match(summary, /Faktor x = 0,0(58|59|60)/);
   assert.match(summary, /R² = (0,999\d|1,0000)/);
 
@@ -466,7 +473,10 @@ test('Auswertung (3a, 3b), Ziel-Experiment Alte AgNO3-Lösung, Transferaufgabe, 
   assert.ok(doc.querySelector('#fb-nernst-derive').textContent.startsWith('✔'));
   assert.equal(doc.querySelector('#nernst-formula-details').open, true);
 
-  // Ziel-Experiment: Polwechsel zwischen 0,1 M und 0,01 M beobachten & c_alt = 0,020 prüfen
+  // Ziel-Experiment: Polwechsel zwischen 1 M / 0,1 M und 0,01 M beobachten & c_alt = 0,020 prüfen
+  doc.querySelector('input[name="nernst-old-ref"][value="1"]').click();
+  assert.ok(doc.querySelector('#nernst-old-poles').textContent.includes('Alte Lösung = Minuspol'));
+  doc.querySelector('input[name="nernst-old-ref"][value="0.1"]').click();
   assert.ok(doc.querySelector('#nernst-old-poles').textContent.includes('Alte Lösung = Minuspol'));
   doc.querySelector('input[name="nernst-old-ref"][value="0.01"]').click();
   assert.ok(doc.querySelector('#nernst-old-poles').textContent.includes('Alte Lösung = Pluspol'));
@@ -503,7 +513,7 @@ test('Auswertung (3a, 3b), Ziel-Experiment Alte AgNO3-Lösung, Transferaufgabe, 
   // Reset setzt alles zurück
   doc.querySelector('#reset-all').click();
   assert.equal(doc.querySelector('#progress-text').textContent, '0 / 16 erledigt');
-  assert.equal(doc.querySelector('#nernst-badge').textContent, '0 / 4 gemessen');
+  assert.equal(doc.querySelector('#nernst-badge').textContent, '0 / 7 gemessen');
   assert.equal(doc.querySelector('#nernst-formula-details').open, false);
   assert.equal(doc.querySelector('#fb-nernst-old').textContent, '');
 });
