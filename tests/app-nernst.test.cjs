@@ -473,19 +473,67 @@ test('Auswertung (3a, 3b), Ziel-Experiment Alte AgNO3-Lösung, Transferaufgabe, 
   assert.ok(doc.querySelector('#fb-nernst-derive').textContent.startsWith('✔'));
   assert.equal(doc.querySelector('#nernst-formula-details').open, true);
 
-  // Ziel-Experiment: Polwechsel zwischen 1 M / 0,1 M und 0,01 M beobachten & c_alt = 0,020 prüfen
+  // Ziel-Experiment: Visuelles 3-Schritte-Mini-Labor (Eingrenzung, Polung, Umformung, Berechnung)
+  assert.equal(doc.querySelector('#nernst-old-badge').textContent, 'Eingrenzung läuft');
+  assert.equal(doc.querySelector('#old-step-1').classList.contains('is-done'), false);
+  assert.equal(doc.querySelector('#old-step-2').classList.contains('is-done'), false);
+  assert.equal(doc.querySelector('#old-step-3').classList.contains('is-done'), false);
+  assert.equal(doc.querySelector('#nernst-old-algebra').hidden, true);
+  assert.ok(doc.querySelector('#nernst-old-apparatus svg[role="img"]'));
+  assert.ok(doc.querySelector('#nernst-old-apparatus title'));
+  assert.ok(doc.querySelector('#nernst-old-apparatus').textContent.includes('0,1 M?'));
+  assert.equal(doc.querySelector('#nernst-old-scale').textContent.includes('0,020'), false);
+  assert.equal(doc.querySelector('#nernst-old-poles').textContent.includes('c_alt'), false);
+
+  // Ionen-Kreise in rechter Halbzelle (r="3.4") überlappen nicht mit rechter Elektrode (x = 404..426)
+  for (const c of doc.querySelectorAll('#nernst-old-apparatus circle[r="3.4"]')) {
+    const cx = Number(c.getAttribute('cx'));
+    assert.ok(cx >= 326 && cx <= 392, `Ionen-x=${cx} außerhalb [326..392]`);
+  }
+
   doc.querySelector('input[name="nernst-old-ref"][value="1"]').click();
   assert.ok(doc.querySelector('#nernst-old-poles').textContent.includes('Alte Lösung = Minuspol'));
+  assert.equal(doc.querySelector('#old-step-1').classList.contains('is-done'), false);
+
   doc.querySelector('input[name="nernst-old-ref"][value="0.1"]').click();
   assert.ok(doc.querySelector('#nernst-old-poles').textContent.includes('Alte Lösung = Minuspol'));
+
+  // Wechsel auf 0,01 M -> Polwechsel & Bereich eingegrenzt (Schritt 1 erledigt, aber noch kein 0,020-Spoiler)
   doc.querySelector('input[name="nernst-old-ref"][value="0.01"]').click();
   assert.ok(doc.querySelector('#nernst-old-poles').textContent.includes('Alte Lösung = Pluspol'));
+  assert.ok(doc.querySelector('#nernst-old-apparatus').textContent.includes('← e⁻'));
+  assert.equal(doc.querySelector('#old-step-1').classList.contains('is-done'), true);
+  assert.equal(doc.querySelector('#nernst-old-badge').textContent, 'Bereich eingegrenzt');
+  assert.equal(doc.querySelector('#nernst-old-bracket-note').textContent.includes('c_alt'), false);
+  assert.equal(doc.querySelector('#nernst-old-scale').textContent.includes('0,020'), false);
+  assert.ok(doc.querySelector('#nernst-old-scale').textContent.includes('0,01 M'));
+  assert.ok(doc.querySelector('#nernst-old-scale').textContent.includes('0,1 M'));
 
+  // Schritt 2: Erst falsche Zuordnung gegen 0,01 M prüfen, dann richtige -> zeigt Umformung ohne Spoiler
+  doc.querySelector('input[name="nernst-old-formula"][value="old_is_c1"]').click();
+  doc.querySelector('form[data-check-form="nernst-old-formula"]').dispatchEvent({ type: 'submit' });
+  assert.ok(doc.querySelector('#fb-nernst-old-formula').textContent.startsWith('✘'));
+  assert.equal(doc.querySelector('#old-step-2').classList.contains('is-done'), false);
+  assert.equal(doc.querySelector('#nernst-old-algebra').hidden, true);
+
+  doc.querySelector('input[name="nernst-old-formula"][value="old_is_c2"]').click();
+  doc.querySelector('form[data-check-form="nernst-old-formula"]').dispatchEvent({ type: 'submit' });
+  assert.ok(doc.querySelector('#fb-nernst-old-formula').textContent.startsWith('✔'));
+  assert.equal(doc.querySelector('#old-step-2').classList.contains('is-done'), true);
+  assert.equal(doc.querySelector('#nernst-old-algebra').hidden, false);
+  assert.equal(doc.querySelector('#nernst-old-algebra').textContent.includes('0,020'), false);
+  assert.equal(doc.querySelector('#nernst-old-algebra').textContent.includes('c_alt'), false);
+
+  // Schritt 3: Konzentration 0,020 mol/L prüfen -> Marker auf Skala & Badge aktualisieren
   const oldIn = doc.querySelector('#nernst-old-c');
   oldIn.value = '0,020';
   oldIn.dispatchEvent({ type: 'input', target: oldIn });
   doc.querySelector('form[data-check-form="nernst-old"]').dispatchEvent({ type: 'submit' });
   assert.ok(doc.querySelector('#fb-nernst-old').textContent.startsWith('✔'));
+  assert.equal(doc.querySelector('#fb-nernst-old').textContent.includes('c_alt'), false);
+  assert.equal(doc.querySelector('#old-step-3').classList.contains('is-done'), true);
+  assert.equal(doc.querySelector('#nernst-old-badge').textContent, 'Konzentration bestimmt');
+  assert.ok(doc.querySelector('#nernst-old-scale').textContent.includes('0,020 M'));
 
   // Transferaufgabe Kupfer (0,001 M | 0,1 M) -> mV-Hinweis testen, dann 0,059 V
   const cuIn = doc.querySelector('#nernst-ex-cu');
@@ -516,6 +564,13 @@ test('Auswertung (3a, 3b), Ziel-Experiment Alte AgNO3-Lösung, Transferaufgabe, 
   assert.equal(doc.querySelector('#nernst-badge').textContent, '0 / 7 gemessen');
   assert.equal(doc.querySelector('#nernst-formula-details').open, false);
   assert.equal(doc.querySelector('#fb-nernst-old').textContent, '');
+  assert.equal(doc.querySelector('#fb-nernst-old-formula').textContent, '');
+  assert.equal(doc.querySelector('#old-step-1').classList.contains('is-done'), false);
+  assert.equal(doc.querySelector('#old-step-2').classList.contains('is-done'), false);
+  assert.equal(doc.querySelector('#old-step-3').classList.contains('is-done'), false);
+  assert.equal(doc.querySelector('#nernst-old-algebra').hidden, true);
+  assert.equal(doc.querySelector('#nernst-old-badge').textContent, 'Eingrenzung läuft');
+  assert.equal(doc.querySelector('#nernst-old-scale').textContent.includes('0,020'), false);
 });
 
 test('Eingabehinweise spoilern keine konkreten Lösungswerte', () => {

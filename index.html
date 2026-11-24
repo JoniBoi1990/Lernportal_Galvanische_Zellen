@@ -627,64 +627,122 @@
       </article>
 
       <h3>4. Ziel-Experiment: Konzentration der alten Silbernitrat-Lösung bestimmen</h3>
-      <article class="task-card" id="task-nernst-old-ag">
-        <p><strong>Auftrag:</strong> Im Chemieschrank steht eine alte Silbernitrat-Lösung (laut Beschriftung <em>c</em> = 0,1 mol/L). Messt sie gegen eure frischen Silber-Halbzellen und bestimmt ihre tatsächliche Konzentration <em>c</em><sub>alt</sub>(Ag⁺) mithilfe von <em>U</em> = Δ<em>E</em> = 0,059 V · lg(<em>c₂</em>(Ag⁺) / <em>c₁</em>(Ag⁺)) (mit <em>c₂</em> &gt; <em>c₁</em>).</p>
-        <div class="nernst-old-lab">
-          <fieldset class="nernst-conc-choice nernst-old-ref-choice">
-            <legend>Frische Referenzhalbzelle (rechts) gegen alte AgNO₃-Lösung (links)</legend>
-            <div class="nernst-radio-grid">
-              <div class="nernst-radio-item">
-                <input type="radio" id="nernst-old-ref-1" name="nernst-old-ref" value="1">
-                <label for="nernst-old-ref-1">1 mol/L (frisch, virtuell)</label>
+      <article class="task-card nernst-old-card" id="task-nernst-old-ag">
+        <p class="nernst-old-mission"><strong>Auftrag:</strong> Im Chemieschrank steht eine gealterte Silbernitrat-Lösung mit verblasstem Etikett (aufgedruckt: <em>c</em> = 0,1 mol/L). Messt sie im Mini-Labor gegen eure frischen Silber-Halbzellen und bestimmt ihre tatsächliche Konzentration <em>c</em><sub>alt</sub>(Ag⁺) Schritt für Schritt mithilfe von <em>U</em> = Δ<em>E</em> = 0,059 V · lg(<em>c₂</em>(Ag⁺) / <em>c₁</em>(Ag⁺)) (mit <em>c₂</em> &gt; <em>c₁</em>).</p>
+        <div class="lab-workspace nernst-old-workspace">
+          <div class="apparatus-panel nernst-old-apparatus-panel">
+            <div class="panel-header">
+              <h4>Versuchsaufbau: Alte gegen frische Lösung</h4>
+              <span id="nernst-old-badge" class="badge">Eingrenzung läuft</span>
+            </div>
+            <div id="nernst-old-apparatus" class="svg-stage apparatus-stage"></div>
+            <div class="readout-grid nernst-old-readouts">
+              <div class="readout-box">
+                <span class="readout-label">Gemessene Zellspannung <em>U</em></span>
+                <output class="readout-value" id="nernst-old-u" aria-live="polite">— V</output>
               </div>
-              <div class="nernst-radio-item">
-                <input type="radio" id="nernst-old-ref-0_1" name="nernst-old-ref" value="0.1" checked>
-                <label for="nernst-old-ref-0_1">0,1 mol/L (frisch)</label>
-              </div>
-              <div class="nernst-radio-item">
-                <input type="radio" id="nernst-old-ref-0_01" name="nernst-old-ref" value="0.01">
-                <label for="nernst-old-ref-0_01">0,01 mol/L (frisch)</label>
-              </div>
-              <div class="nernst-radio-item">
-                <input type="radio" id="nernst-old-ref-0_001" name="nernst-old-ref" value="0.001">
-                <label for="nernst-old-ref-0_001">0,001 mol/L (frisch)</label>
+              <div class="readout-box">
+                <span class="readout-label">Abgelesene Polung (rotes Kabel am Pluspol <em>c₂</em>)</span>
+                <output class="readout-value" id="nernst-old-poles" aria-live="polite">—</output>
               </div>
             </div>
-          </fieldset>
-          <div class="readout-grid nernst-old-readouts">
-            <div class="readout-box">
-              <span class="readout-label">Gemessene Zellspannung <em>U</em></span>
-              <output class="readout-value" id="nernst-old-u" aria-live="polite">— V</output>
+            <figure class="nernst-scale-figure">
+              <figcaption class="scale-title">Konzentrations-Skala (logarithmisch): Wo liegt <em>c</em><sub>alt</sub>?</figcaption>
+              <div id="nernst-old-scale" class="svg-stage nernst-scale-stage"></div>
+            </figure>
+          </div>
+          <div class="steps-panel nernst-old-steps-panel">
+            <div class="panel-header">
+              <h4>Schrittweise Auswertung</h4>
             </div>
-            <div class="readout-box">
-              <span class="readout-label">Abgelesene Polung (rotes Kabel am Pluspol <em>c₂</em>)</span>
-              <output class="readout-value" id="nernst-old-poles" aria-live="polite">—</output>
-            </div>
+            <ol class="steps nernst-old-steps">
+              <li class="step" id="old-step-1">
+                <div class="step-head">
+                  <span class="step-check" aria-hidden="true"></span>
+                  <h4>Schritt 1: Konzentrationsbereich eingrenzen</h4>
+                </div>
+                <p class="step-desc">Schalte verschiedene frische Referenzlösungen zu. Beobachte am Voltmeter und anhand der Kabelpolung, wo das höhere Potenzial (Pluspol <em>c₂</em>) liegt.</p>
+                <fieldset class="nernst-conc-choice nernst-old-ref-choice">
+                  <legend>Frische Referenzhalbzelle (rechts) gegen alte AgNO₃-Lösung (links)</legend>
+                  <div class="nernst-radio-grid">
+                    <div class="nernst-radio-item">
+                      <input type="radio" id="nernst-old-ref-1" name="nernst-old-ref" value="1">
+                      <label for="nernst-old-ref-1">1 mol/L (frisch, virtuell)</label>
+                    </div>
+                    <div class="nernst-radio-item">
+                      <input type="radio" id="nernst-old-ref-0_1" name="nernst-old-ref" value="0.1" checked>
+                      <label for="nernst-old-ref-0_1">0,1 mol/L (frisch)</label>
+                    </div>
+                    <div class="nernst-radio-item">
+                      <input type="radio" id="nernst-old-ref-0_01" name="nernst-old-ref" value="0.01">
+                      <label for="nernst-old-ref-0_01">0,01 mol/L (frisch)</label>
+                    </div>
+                    <div class="nernst-radio-item">
+                      <input type="radio" id="nernst-old-ref-0_001" name="nernst-old-ref" value="0.001">
+                      <label for="nernst-old-ref-0_001">0,001 mol/L (frisch)</label>
+                    </div>
+                  </div>
+                </fieldset>
+                <p class="field-hint nernst-old-bracket-note" id="nernst-old-bracket-note" aria-live="polite">Teste mindestens zwei Referenzen (z. B. 0,1 M und 0,01 M), um den Bereich von <em>c</em><sub>alt</sub> einzugrenzen.</p>
+              </li>
+              <li class="step" id="old-step-2">
+                <div class="step-head">
+                  <span class="step-check" aria-hidden="true"></span>
+                  <h4>Schritt 2: <em>c₁</em> und <em>c₂</em> richtig zuordnen</h4>
+                </div>
+                <p class="step-desc">Im Bruch lg(<em>c₂</em> / <em>c₁</em>) steht immer der <strong>Pluspol</strong> (höhere Konzentration) im Zähler. Welche Rolle hat <em>c</em><sub>alt</sub> bei deiner aktuell gewählten Referenz?</p>
+                <form class="nernst-form" data-check-form="nernst-old-formula" novalidate>
+                  <fieldset class="nernst-conc-choice nernst-old-formula-choice">
+                    <legend>Aktuelle Messung (Referenz rechts = <span id="nernst-old-step2-ref">0,1</span> mol/L)</legend>
+                    <div class="nernst-formula-radios">
+                      <div class="nernst-radio-item">
+                        <input type="radio" id="nernst-old-f1" name="nernst-old-formula" value="old_is_c1">
+                        <label for="nernst-old-f1" id="nernst-old-opt-c1"><em>c</em><sub>alt</sub> = <em>c₁</em> (Minuspol / verdünnter) &lt; 0,1 mol/L = <em>c₂</em></label>
+                      </div>
+                      <div class="nernst-radio-item">
+                        <input type="radio" id="nernst-old-f2" name="nernst-old-formula" value="old_is_c2">
+                        <label for="nernst-old-f2" id="nernst-old-opt-c2"><em>c</em><sub>alt</sub> = <em>c₂</em> (Pluspol / konzentrierter) &gt; 0,1 mol/L = <em>c₁</em></label>
+                      </div>
+                    </div>
+                  </fieldset>
+                  <div class="btn-row"><button type="submit" class="btn btn-sm">Zuordnung prüfen</button></div>
+                </form>
+                <p class="feedback" id="fb-nernst-old-formula" aria-live="polite"></p>
+                <div id="nernst-old-algebra" class="nernst-old-algebra" hidden></div>
+              </li>
+              <li class="step" id="old-step-3">
+                <div class="step-head">
+                  <span class="step-check" aria-hidden="true"></span>
+                  <h4>Schritt 3: Konzentration <em>c</em><sub>alt</sub>(Ag⁺) berechnen</h4>
+                </div>
+                <p class="step-desc">Setze die Spannung <em>U</em> und die Referenzkonzentration in die Nernst-Gleichung ein und löse nach <em>c</em><sub>alt</sub>(Ag⁺) auf.</p>
+                <form class="nernst-form" data-check-form="nernst-old" novalidate>
+                  <div class="field-group">
+                    <label for="nernst-old-c">Ermittelte Konzentration <em>c</em><sub>alt</sub>(Ag⁺) der alten Silbernitrat-Lösung:</label>
+                    <span id="nernst-old-c-hint" class="field-hint">Dezimalzahl in mol/L mit Komma (auf 3 Nachkommastellen runden)</span>
+                    <div class="input-unit">
+                      <input type="text" id="nernst-old-c" inputmode="decimal" autocomplete="off" aria-describedby="nernst-old-c-hint" size="10">
+                      <span>mol/L</span>
+                    </div>
+                  </div>
+                  <div class="btn-row"><button type="submit" class="btn btn-sm">Konzentration prüfen</button></div>
+                </form>
+                <p class="feedback" id="fb-nernst-old" aria-live="polite"></p>
+                <details>
+                  <summary>Rechenweg &amp; Bewertung anzeigen</summary>
+                  <div class="solution">
+                    <p><strong>Qualitativ aus der Polung:</strong> Gegen 0,1 M ist die alte Lösung Minuspol (also <em>c</em><sub>alt</sub> &lt; 0,1 mol/L), gegen 0,01 M ist sie Pluspol (also <em>c</em><sub>alt</sub> &gt; 0,01 mol/L).</p>
+                    <p><strong>Rechnung gegen frische 0,1 mol/L-Lösung (<em>c₂</em> = 0,1 mol/L, <em>c₁</em> = <em>c</em><sub>alt</sub>, <em>U</em> ≈ 0,041 V):</strong></p>
+                    <p>lg(0,1 mol/L / <em>c</em><sub>alt</sub>) = 0,041 V / 0,059 V ≈ 0,695 → 0,1 mol/L / <em>c</em><sub>alt</sub> = 10<sup>0,695</sup> ≈ 4,95 → <strong><em>c</em><sub>alt</sub> ≈ 0,020 mol/L</strong>.</p>
+                    <p><strong>Kontrollrechnung gegen frische 0,01 mol/L-Lösung (<em>c₂</em> = <em>c</em><sub>alt</sub>, <em>c₁</em> = 0,01 mol/L, <em>U</em> ≈ 0,018 V):</strong></p>
+                    <p>lg(<em>c</em><sub>alt</sub> / 0,01 mol/L) = 0,018 V / 0,059 V ≈ 0,305 → <em>c</em><sub>alt</sub> = 0,01 mol/L · 10<sup>0,305</sup> ≈ <strong>0,020 mol/L</strong>.</p>
+                    <p class="small-note">Die alte Lösung enthält nur noch ein Fünftel der angegebenen Konzentration (0,1 mol/L) – die Beschriftung stimmt nicht mehr.</p>
+                  </div>
+                </details>
+              </li>
+            </ol>
           </div>
         </div>
-        <form class="nernst-form" data-check-form="nernst-old" novalidate>
-          <div class="field-group">
-            <label for="nernst-old-c">Ermittelte Konzentration <em>c</em><sub>alt</sub>(Ag⁺) der alten Silbernitrat-Lösung:</label>
-            <span id="nernst-old-c-hint" class="field-hint">Dezimalzahl in mol/L mit Komma (auf 3 Nachkommastellen runden)</span>
-            <div class="input-unit">
-              <input type="text" id="nernst-old-c" inputmode="decimal" autocomplete="off" aria-describedby="nernst-old-c-hint" size="10">
-              <span>mol/L</span>
-            </div>
-          </div>
-          <div class="btn-row"><button type="submit" class="btn btn-sm">Überprüfen</button></div>
-        </form>
-        <p class="feedback" id="fb-nernst-old" aria-live="polite"></p>
-        <details>
-          <summary>Rechenweg &amp; Bewertung anzeigen</summary>
-          <div class="solution">
-            <p><strong>Qualitativ aus der Polung:</strong> Gegen 0,1 M ist die alte Lösung Minuspol (also <em>c</em><sub>alt</sub> &lt; 0,1 mol/L), gegen 0,01 M ist sie Pluspol (also <em>c</em><sub>alt</sub> &gt; 0,01 mol/L).</p>
-            <p><strong>Rechnung gegen frische 0,1 mol/L-Lösung (<em>c₂</em> = 0,1 mol/L, <em>c₁</em> = <em>c</em><sub>alt</sub>, <em>U</em> ≈ 0,041 V):</strong></p>
-            <p>lg(0,1 mol/L / <em>c</em><sub>alt</sub>) = 0,041 V / 0,059 V ≈ 0,695 → 0,1 mol/L / <em>c</em><sub>alt</sub> = 10<sup>0,695</sup> ≈ 4,95 → <strong><em>c</em><sub>alt</sub> ≈ 0,020 mol/L</strong>.</p>
-            <p><strong>Kontrollrechnung gegen frische 0,01 mol/L-Lösung (<em>c₂</em> = <em>c</em><sub>alt</sub>, <em>c₁</em> = 0,01 mol/L, <em>U</em> ≈ 0,018 V):</strong></p>
-            <p>lg(<em>c</em><sub>alt</sub> / 0,01 mol/L) = 0,018 V / 0,059 V ≈ 0,305 → <em>c</em><sub>alt</sub> = 0,01 mol/L · 10<sup>0,305</sup> ≈ <strong>0,020 mol/L</strong>.</p>
-            <p class="small-note">Die alte Lösung enthält nur noch ein Fünftel der angegebenen Konzentration (0,1 mol/L) – die Beschriftung stimmt nicht mehr.</p>
-          </div>
-        </details>
       </article>
 
       <h3>5. Warum fällt das Standardpotenzial <em>E°</em> heraus? – Allgemeine Nernst-Gleichung</h3>

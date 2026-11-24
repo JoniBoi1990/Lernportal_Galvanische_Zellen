@@ -21,6 +21,9 @@
     slope: '',
     deriveOk: false,
     oldRefC: 0.1,
+    oldTested: [0.1],
+    oldFormula: '',
+    oldFormulaOk: false,
     oldC: '',
     oldCOk: false,
     exCu: '',
@@ -57,6 +60,10 @@
       if (!C.SILVER_CONCS.includes(Number(nernst.cLeft))) nernst.cLeft = 0.01;
       if (!C.SILVER_CONCS.includes(Number(nernst.cRight))) nernst.cRight = 0.1;
       if (!C.SILVER_CONCS.includes(Number(nernst.oldRefC))) nernst.oldRefC = 0.1;
+      nernst.oldTested = Array.isArray(sn.oldTested)
+        ? Array.from(new Set(sn.oldTested.map(Number).filter((c) => C.SILVER_CONCS.includes(c))))
+        : [nernst.oldRefC];
+      if (!nernst.oldTested.includes(nernst.oldRefC)) nernst.oldTested.push(nernst.oldRefC);
       return {
         lab: Object.assign(d.lab, s.lab || {}),
         ui: Object.assign(d.ui, s.ui || {}),
@@ -1226,12 +1233,239 @@
     }
   }
 
+  function oldBracketSummary() {
+    const tested = Array.isArray(state.nernst.oldTested) && state.nernst.oldTested.length
+      ? state.nernst.oldTested
+      : [state.nernst.oldRefC];
+    let lower = null;
+    let upper = null;
+    for (const c of tested) {
+      const r = C.oldSilverCell(c);
+      if (r.oldIsAnode) {
+        if (upper === null || c < upper) upper = c;
+      } else if (lower === null || c > lower) {
+        lower = c;
+      }
+    }
+    return {
+      tested,
+      lower,
+      upper,
+      bracketDone: lower !== null && upper !== null,
+    };
+  }
+
+  function renderOldSilverApparatus(res) {
+    const host = $('#nernst-old-apparatus');
+    if (!host) return;
+    const refDotsMap = { '1': 16, '0.1': 11, '0.01': 6, '0.001': 2 };
+    const nRight = refDotsMap[String(res.cRef)] || 6;
+    // Ionen rechts strikt links der rechten Ag-Elektrode (x = 404..426), x in [342..391]
+    const rightDotCoords = [
+      [346, 174], [368, 198], [388, 172], [352, 214], [380, 218],
+      [391, 192], [343, 196], [362, 166], [390, 214], [374, 178],
+      [360, 186], [348, 224], [386, 204], [370, 208], [356, 202], [382, 184],
+    ];
+    let rightDots = '';
+    for (let i = 0; i < nRight; i++) {
+      const [dx, dy] = rightDotCoords[i];
+      rightDots += `<circle cx="${dx}" cy="${dy}" r="3.4" fill="#9aa3ae" stroke="#5e6873" stroke-width="0.8"/>`;
+    }
+    const leftDotCoords = [[154, 178], [182, 208], [168, 192], [156, 218]];
+    let leftDots = '';
+    for (const [dx, dy] of leftDotCoords) {
+      leftDots += `<circle cx="${dx}" cy="${dy}" r="3.2" fill="rgba(130, 146, 162, 0.45)" stroke="rgba(94, 104, 115, 0.55)" stroke-width="0.8"/>`;
+    }
+
+    const oldAnode = res.oldIsAnode;
+    const colLeft = oldAnode ? '#222' : '#c62828';
+    const colRight = oldAnode ? '#c62828' : '#222';
+    const poleLeft = `<circle cx="127" cy="76" r="10" fill="${oldAnode ? '#1756c9' : '#b3261e'}"/><text x="127" y="80.5" class="svg-pole">${oldAnode ? '−' : '+'}</text>`;
+    const poleRight = `<circle cx="415" cy="76" r="10" fill="${oldAnode ? '#b3261e' : '#1756c9'}"/><text x="415" y="80.5" class="svg-pole">${oldAnode ? '+' : '−'}</text>`;
+    const eFlow = oldAnode
+      ? `<text x="271" y="79" class="svg-tiny" font-weight="700" fill="#1756c9">e⁻ →</text><line x1="226" y1="86" x2="310" y2="86" stroke="#1756c9" stroke-width="2" stroke-linecap="round"/><polygon points="318,86 309,82 309,90" fill="#1756c9"/>`
+      : `<text x="271" y="79" class="svg-tiny" font-weight="700" fill="#1756c9">← e⁻</text><line x1="316" y1="86" x2="232" y2="86" stroke="#1756c9" stroke-width="2" stroke-linecap="round"/><polygon points="224,86 233,82 233,90" fill="#1756c9"/>`;
+
+    const leftRole = oldAnode ? 'Minuspol = c₁' : 'Pluspol = c₂';
+    const rightRole = oldAnode ? 'Pluspol = c₂' : 'Minuspol = c₁';
+    const title = `Ziel-Experiment: Alte AgNO₃-Lösung links gegen frische ${C.fmtC(res.cRef)} M Lösung rechts, Spannung ${C.fmtNum(res.U, 3)} V`;
+
+    host.innerHTML = `<svg role="img" viewBox="0 0 520 284" xmlns="http://www.w3.org/2000/svg" aria-label="${esc(title)}">
+      <title>${esc(title)}</title>
+      <!-- Braunglasflasche (alte Vorratsflasche links) -->
+      <rect x="33" y="114" width="28" height="11" rx="2.5" fill="#3a4552"/>
+      <path d="M36 125 H58 V142 L68 152 V236 Q68 242 62 242 H32 Q26 242 26 236 V152 L36 142 Z" fill="#8f4d16" stroke="#5b300b" stroke-width="1.8"/>
+      <path d="M31 156 V232" stroke="rgba(255,215,170,0.35)" stroke-width="2.5" stroke-linecap="round"/>
+      <rect x="29" y="164" width="36" height="44" rx="2.5" fill="#f7eed3" stroke="#cbb887" stroke-width="1"/>
+      <text x="47" y="180" class="svg-tiny" font-weight="700" fill="#2f2618">AgNO₃</text>
+      <text x="47" y="196" class="svg-tiny" font-weight="700" fill="#8b3e1a">0,1 M?</text>
+      <text x="47" y="259" class="svg-tiny" fill="#5e4b2c">Vorratsflasche</text>
+      <path d="M72 180 H87" fill="none" stroke="#8f4d16" stroke-width="1.6" stroke-dasharray="3 2"/>
+      <polygon points="92,180 85,176.5 85,183.5" fill="#8f4d16"/>
+      <!-- Becher links (Alte Lösung) -->
+      <path d="M98 152 H224 V232 Q224 238 218 238 H104 Q98 238 98 232 Z" fill="rgba(234, 238, 242, 0.72)"/>
+      <text x="168" y="210" font-size="38" font-weight="700" fill="rgba(0, 102, 153, 0.16)" text-anchor="middle">?</text>
+      <path d="M94 116 V230 Q94 242 106 242 H216 Q228 242 228 230 V116" fill="none" stroke="#6f8396" stroke-width="2.2"/>
+      <rect x="116" y="92" width="22" height="132" rx="2" fill="#d3d8de" stroke="#959ca5" stroke-width="1.5"/>
+      <text x="127" y="198" class="svg-metal" transform="rotate(-90 127 198)">Silber</text>
+      ${leftDots}
+      <text x="161" y="259" class="svg-label">Ag | Alte Lösung</text>
+      <text x="161" y="274" class="svg-tiny" font-weight="700"><tspan font-style="italic">c</tspan><tspan baseline-shift="sub" font-size="75%">alt</tspan> = ? (${esc(leftRole)})</text>
+      ${poleLeft}
+      <!-- Becher rechts (Frische Referenz) -->
+      <path d="M316 152 H444 V232 Q444 238 438 238 H322 Q316 238 316 232 Z" fill="rgba(226, 232, 238, 0.80)"/>
+      <path d="M312 116 V230 Q312 242 324 242 H436 Q448 242 448 230 V116" fill="none" stroke="#6f8396" stroke-width="2.2"/>
+      <rect x="404" y="92" width="22" height="132" rx="2" fill="#d3d8de" stroke="#959ca5" stroke-width="1.5"/>
+      <text x="415" y="198" class="svg-metal" transform="rotate(-90 415 198)">Silber</text>
+      ${rightDots}
+      <text x="380" y="259" class="svg-label">Ag | Frisch (${esc(C.fmtC(res.cRef))} M)</text>
+      <text x="380" y="274" class="svg-tiny" font-weight="700">(${esc(rightRole)})</text>
+      ${poleRight}
+      <!-- Salzbrücke -->
+      <path d="M208 218 V126 Q208 110 224 110 H312 Q328 110 328 126 V218" fill="none" stroke="#d8c58f" stroke-width="12" stroke-linejoin="round"/>
+      <text x="268" y="102" class="svg-small">Salzbrücke (KNO₃)</text>
+      <!-- Elektronenfluss + Kabel -->
+      ${eFlow}
+      <path d="M127 92 C127 50 176 56 233 56" fill="none" stroke="${colLeft}" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M415 92 C415 50 366 56 309 56" fill="none" stroke="${colRight}" stroke-width="3.5" stroke-linecap="round"/>
+      <!-- Voltmeter -->
+      <rect x="213" y="10" width="116" height="60" rx="8" fill="#f2c230" stroke="#8a6d0b" stroke-width="2"/>
+      <rect x="223" y="17" width="96" height="25" rx="4" fill="#c9d8b6"/>
+      <text x="271" y="35" class="svg-lcd">${esc(C.fmtNum(res.U, 3))} V</text>
+      <circle cx="233" cy="56" r="4.5" fill="${colLeft}"/><circle cx="309" cy="56" r="4.5" fill="${colRight}"/>
+      <text x="249" y="59" class="svg-tiny">${oldAnode ? 'COM' : 'V'}</text><text x="293" y="59" class="svg-tiny">${oldAnode ? 'V' : 'COM'}</text>
+    </svg>`;
+  }
+
+  function renderOldSilverScale(res, bracket) {
+    const host = $('#nernst-old-scale');
+    if (!host) return;
+    const x0 = 46;
+    const x1 = 414;
+    const yAxis = 62;
+    const xOfC = (c) => x0 + ((Math.log10(c) + 3) / 3) * (x1 - x0);
+    const bandLow = bracket.lower !== null ? xOfC(bracket.lower) : x0;
+    const bandHigh = bracket.upper !== null ? xOfC(bracket.upper) : x1;
+
+    let rangeText = '';
+    if (bracket.lower !== null && bracket.upper !== null) {
+      rangeText = `${esc(C.fmtC(bracket.lower))} M &lt; <tspan font-style="italic">c</tspan><tspan baseline-shift="sub" font-size="75%">alt</tspan> &lt; ${esc(C.fmtC(bracket.upper))} M`;
+    } else if (bracket.upper !== null) {
+      rangeText = `<tspan font-style="italic">c</tspan><tspan baseline-shift="sub" font-size="75%">alt</tspan> &lt; ${esc(C.fmtC(bracket.upper))} M`;
+    } else if (bracket.lower !== null) {
+      rangeText = `<tspan font-style="italic">c</tspan><tspan baseline-shift="sub" font-size="75%">alt</tspan> &gt; ${esc(C.fmtC(bracket.lower))} M`;
+    }
+
+    const xLabelMark = xOfC(0.1);
+    const xRef = xOfC(res.cRef);
+    let ticks = '';
+    for (const c of [0.001, 0.01, 0.1, 1]) {
+      const tx = xOfC(c);
+      const isTested = bracket.tested.includes(c);
+      ticks += `<line x1="${tx}" y1="${yAxis - 14}" x2="${tx}" y2="${yAxis + 14}" stroke="${isTested ? '#006699' : '#8a99a8'}" stroke-width="${isTested ? '2' : '1.4'}"/>`;
+      ticks += `<text x="${tx}" y="${yAxis + 30}" class="svg-tiny" font-weight="${c === res.cRef ? '700' : '400'}" fill="${c === res.cRef ? '#00507a' : '#485868'}">${esc(C.fmtC(c))} M</text>`;
+    }
+
+    let solvedPin = '';
+    if (state.nernst.oldCOk) {
+      const xTrue = xOfC(C.OLD_AG_CONC);
+      solvedPin = `<line x1="${xTrue}" y1="${yAxis - 26}" x2="${xTrue}" y2="${yAxis + 12}" stroke="#1b7f46" stroke-width="2.6"/>
+        <circle cx="${xTrue}" cy="${yAxis}" r="5.5" fill="#1b7f46" stroke="#fff" stroke-width="1.5"/>
+        <rect x="${xTrue - 34}" y="${yAxis - 46}" width="68" height="19" rx="9" fill="#1b7f46"/>
+        <text x="${xTrue}" y="${yAxis - 33}" class="svg-tiny" font-weight="700" fill="#fff">✔ 0,020 M</text>`;
+    }
+
+    const labelSolvedNote = state.nernst.oldCOk ? ' Konzentration 0,020 mol/L bestätigt.' : ' Eingrenzung ohne Ergebnis-Spoiler.';
+    const title = `Logarithmische Konzentrations-Skala von 0,001 bis 1 mol/L.${labelSolvedNote}`;
+
+    host.innerHTML = `<svg role="img" viewBox="0 0 460 112" xmlns="http://www.w3.org/2000/svg" aria-label="${esc(title)}">
+      <title>${esc(title)}</title>
+      <!-- Ausgeschlossene Bereiche -->
+      ${bandLow > x0 ? `<rect x="${x0}" y="${yAxis - 9}" width="${bandLow - x0}" height="18" rx="4" fill="#e5ebf1"/>` : ''}
+      ${bandHigh < x1 ? `<rect x="${bandHigh}" y="${yAxis - 9}" width="${x1 - bandHigh}" height="18" rx="4" fill="#e5ebf1"/>` : ''}
+      <!-- Möglicher Bereich -->
+      <rect x="${bandLow}" y="${yAxis - 10}" width="${Math.max(8, bandHigh - bandLow)}" height="20" rx="5" fill="#cbe7f6" stroke="#006699" stroke-width="1.8"/>
+      <text x="${(bandLow + bandHigh) / 2}" y="22" class="svg-tiny" font-weight="700" fill="#00507a">${rangeText}</text>
+      <line x1="${x0}" y1="${yAxis}" x2="${x1}" y2="${yAxis}" stroke="#6c7f93" stroke-width="1.5"/>
+      <!-- Etikett-Markierung 0,1 M -->
+      <line x1="${xLabelMark}" y1="28" x2="${xLabelMark}" y2="${yAxis + 12}" stroke="#b86b18" stroke-width="1.4" stroke-dasharray="3 2"/>
+      <text x="${xLabelMark}" y="38" class="svg-tiny" font-weight="700" fill="#995309" text-anchor="start" dx="5">Etikett: 0,1 M</text>
+      ${ticks}
+      <!-- Aktuelle Referenz -->
+      <circle cx="${xRef}" cy="${yAxis}" r="5.5" fill="none" stroke="#d96b43" stroke-width="2.4"/>
+      <text x="${xRef}" y="${yAxis + 42}" class="svg-tiny" font-weight="700" fill="#9c381c">aktuelle Ref.</text>
+      ${solvedPin}
+    </svg>`;
+  }
+
   function renderOldSilverLab() {
     const res = C.oldSilverCell(state.nernst.oldRefC);
+    if (!state.nernst.oldTested.includes(res.cRef)) state.nernst.oldTested.push(res.cRef);
+    const bracket = oldBracketSummary();
+
     $('#nernst-old-u').textContent = C.fmtNum(res.U, 3) + ' V';
-    $('#nernst-old-poles').textContent = res.oldIsAnode
-      ? 'Frische ' + C.fmtC(res.cRef) + ' M = Pluspol (c₂) · Alte Lösung = Minuspol (c₁) → c_alt < ' + C.fmtC(res.cRef) + ' mol/L'
-      : 'Alte Lösung = Pluspol (c₂) · Frische ' + C.fmtC(res.cRef) + ' M = Minuspol (c₁) → c_alt > ' + C.fmtC(res.cRef) + ' mol/L';
+    $('#nernst-old-poles').innerHTML = res.oldIsAnode
+      ? `Frische ${esc(C.fmtC(res.cRef))} M = Pluspol (<em>c₂</em>) · Alte Lösung = Minuspol (<em>c₁</em>) → <em>c</em><sub>alt</sub> &lt; ${esc(C.fmtC(res.cRef))} mol/L`
+      : `Alte Lösung = Pluspol (<em>c₂</em>) · Frische ${esc(C.fmtC(res.cRef))} M = Minuspol (<em>c₁</em>) → <em>c</em><sub>alt</sub> &gt; ${esc(C.fmtC(res.cRef))} mol/L`;
+
+    const refSpan = $('#nernst-old-step2-ref');
+    if (refSpan) refSpan.textContent = C.fmtC(res.cRef);
+    const optC1 = $('#nernst-old-opt-c1');
+    if (optC1) optC1.innerHTML = `<em>c</em><sub>alt</sub> = <em>c₁</em> (Minuspol / verdünnter) &lt; ${esc(C.fmtC(res.cRef))} mol/L = <em>c₂</em>`;
+    const optC2 = $('#nernst-old-opt-c2');
+    if (optC2) optC2.innerHTML = `<em>c</em><sub>alt</sub> = <em>c₂</em> (Pluspol / konzentrierter) &gt; ${esc(C.fmtC(res.cRef))} mol/L = <em>c₁</em>`;
+
+    const noteEl = $('#nernst-old-bracket-note');
+    if (noteEl) {
+      if (bracket.bracketDone) {
+        noteEl.innerHTML = `✔ Bereich eingegrenzt: <strong>${esc(C.fmtC(bracket.lower))} mol/L &lt; <em>c</em><sub>alt</sub> &lt; ${esc(C.fmtC(bracket.upper))} mol/L</strong> (Polwechsel zwischen beiden Referenzen beobachtet).`;
+      } else if (bracket.upper !== null) {
+        noteEl.innerHTML = `Bisher eingegrenzt: <em>c</em><sub>alt</sub> &lt; ${esc(C.fmtC(bracket.upper))} mol/L. Teste eine niedrigere Referenz (z. B. 0,01 mol/L), um den Bereich von unten einzugrenzen.`;
+      } else {
+        noteEl.innerHTML = `Bisher eingegrenzt: <em>c</em><sub>alt</sub> &gt; ${esc(C.fmtC(bracket.lower))} mol/L. Teste eine höhere Referenz (z. B. 0,1 mol/L), um den Bereich von oben einzugrenzen.`;
+      }
+    }
+
+    const s1 = $('#old-step-1');
+    if (s1) s1.classList.toggle('is-done', bracket.bracketDone);
+    const s2 = $('#old-step-2');
+    if (s2) s2.classList.toggle('is-done', !!state.nernst.oldFormulaOk);
+    const s3 = $('#old-step-3');
+    if (s3) s3.classList.toggle('is-done', !!state.nernst.oldCOk);
+
+    const algebraEl = $('#nernst-old-algebra');
+    if (algebraEl) {
+      if (state.nernst.oldFormulaOk) {
+        algebraEl.hidden = false;
+        algebraEl.innerHTML = res.oldIsAnode
+          ? `<p><strong>Umformung für <em>c</em><sub>alt</sub> = <em>c₁</em>:</strong></p>
+             <p><em>U</em> / 0,059 V = lg(<em>c₂</em> / <em>c</em><sub>alt</sub>) → <em>c</em><sub>alt</sub> = <em>c₂</em> / 10<sup><em>U</em> / 0,059 V</sup></p>
+             <p class="small-note">Setze in Schritt 3 <em>c₂</em> = ${esc(C.fmtC(res.cRef))} mol/L und <em>U</em> = ${esc(C.fmtNum(res.U, 3))} V ein.</p>`
+          : `<p><strong>Umformung für <em>c</em><sub>alt</sub> = <em>c₂</em>:</strong></p>
+             <p><em>U</em> / 0,059 V = lg(<em>c</em><sub>alt</sub> / <em>c₁</em>) → <em>c</em><sub>alt</sub> = <em>c₁</em> · 10<sup><em>U</em> / 0,059 V</sup></p>
+             <p class="small-note">Setze in Schritt 3 <em>c₁</em> = ${esc(C.fmtC(res.cRef))} mol/L und <em>U</em> = ${esc(C.fmtNum(res.U, 3))} V ein.</p>`;
+      } else {
+        algebraEl.hidden = true;
+        algebraEl.innerHTML = '';
+      }
+    }
+
+    const badge = $('#nernst-old-badge');
+    if (badge) {
+      if (state.nernst.oldCOk) {
+        badge.textContent = 'Konzentration bestimmt';
+        badge.className = 'badge is-done';
+      } else if (bracket.bracketDone) {
+        badge.textContent = 'Bereich eingegrenzt';
+        badge.className = 'badge is-ready';
+      } else {
+        badge.textContent = 'Eingrenzung läuft';
+        badge.className = 'badge';
+      }
+    }
+
+    renderOldSilverApparatus(res);
+    renderOldSilverScale(res, bracket);
   }
 
   function clearInvalid(el) {
@@ -1300,6 +1534,40 @@
     renderProgress();
   }
 
+  function checkNernstOldFormula() {
+    const res = C.oldSilverCell(state.nernst.oldRefC);
+    const chosen = state.nernst.oldFormula;
+    if (!chosen) {
+      state.nernst.oldFormulaOk = false;
+      setFeedback('nernst-old-formula', false, '✘ Bitte wähle zunächst eine der beiden Zuordnungen für <em>c</em><sub>alt</sub>.');
+      renderOldSilverLab();
+      save();
+      return;
+    }
+    const expected = res.oldIsAnode ? 'old_is_c1' : 'old_is_c2';
+    const ok = chosen === expected;
+    state.nernst.oldFormulaOk = ok;
+    if (ok) {
+      setFeedback(
+        'nernst-old-formula',
+        true,
+        res.oldIsAnode
+          ? '✔ Richtig! Die alte Lösung bildet den Minuspol (Anode) und besitzt somit die kleinere Konzentration <em>c₁</em> &lt; ' + esc(C.fmtC(res.cRef)) + ' mol/L.'
+          : '✔ Richtig! Die alte Lösung bildet den Pluspol (Kathode) und besitzt somit die größere Konzentration <em>c₂</em> &gt; ' + esc(C.fmtC(res.cRef)) + ' mol/L.'
+      );
+    } else {
+      setFeedback(
+        'nernst-old-formula',
+        false,
+        res.oldIsAnode
+          ? '✘ Schau auf Voltmeter und Polung links: Bei ' + esc(C.fmtC(res.cRef)) + ' mol/L trägt die frische Lösung das rote Plus-Kabel (<em>c₂</em>) und die alte Lösung den Minuspol (<em>c₁</em>).'
+          : '✘ Schau auf Voltmeter und Polung links: Bei ' + esc(C.fmtC(res.cRef)) + ' mol/L trägt die alte Lösung das rote Plus-Kabel (<em>c₂</em>) und die frische Lösung den Minuspol (<em>c₁</em>).'
+      );
+    }
+    renderOldSilverLab();
+    save();
+  }
+
   function checkNernstOld() {
     const el = $('#nernst-old-c');
     const v = parseNum(state.nernst.oldC);
@@ -1307,10 +1575,11 @@
     markValidity(el, ok);
     state.nernst.oldCOk = ok;
     if (ok) {
-      setFeedback('nernst-old', true, '✔ Richtig! Die alte Silbernitrat-Lösung hat tatsächlich nur noch eine Konzentration von c_alt ≈ 0,020 mol/L (ein Fünftel der aufgedruckten 0,1 mol/L).');
+      setFeedback('nernst-old', true, '✔ Richtig! Die alte Silbernitrat-Lösung hat tatsächlich nur noch eine Konzentration von <em>c</em><sub>alt</sub> ≈ 0,020 mol/L (ein Fünftel der aufgedruckten 0,1 mol/L).');
     } else {
       setFeedback('nernst-old', false, '✘ Prüfe deinen Rechenansatz: Setze den gemessenen Spannungswert U und die gewählte Referenzkonzentration in U = 0,059 V · lg(c₂ / c₁) (mit c₂ > c₁) ein.');
     }
+    renderOldSilverLab();
     save();
     renderProgress();
   }
@@ -1340,6 +1609,9 @@
     if (radR) radR.checked = true;
     const radOld = $(`input[name="nernst-old-ref"][value="${String(n.oldRefC)}"]`);
     if (radOld) radOld.checked = true;
+    $$('input[name="nernst-old-formula"]').forEach((r) => {
+      r.checked = r.value === n.oldFormula;
+    });
     $('#nernst-show-fit').checked = !!n.showFit;
     $('#nernst-show-cu').checked = !!n.showCuCompare;
     $('#nernst-q1').value = n.qualitative.q1 || '';
@@ -1410,7 +1682,21 @@
     });
 
     $$('input[name="nernst-old-ref"]').forEach((r) => r.addEventListener('change', () => {
-      state.nernst.oldRefC = Number(r.value);
+      const refVal = Number(r.value);
+      state.nernst.oldRefC = refVal;
+      if (!state.nernst.oldTested.includes(refVal)) state.nernst.oldTested.push(refVal);
+      state.nernst.oldFormula = '';
+      state.nernst.oldFormulaOk = false;
+      $$('input[name="nernst-old-formula"]').forEach((f) => { f.checked = false; });
+      setFeedback('nernst-old-formula', null, '');
+      save();
+      renderOldSilverLab();
+    }));
+
+    $$('input[name="nernst-old-formula"]').forEach((r) => r.addEventListener('change', () => {
+      state.nernst.oldFormula = r.value;
+      state.nernst.oldFormulaOk = false;
+      setFeedback('nernst-old-formula', null, '');
       save();
       renderOldSilverLab();
     }));
@@ -1439,6 +1725,7 @@
       state.nernst.oldC = e.target.value;
       state.nernst.oldCOk = false;
       clearInvalid(e.target);
+      renderOldSilverLab();
       save();
     });
     $('#nernst-ex-cu').addEventListener('input', (e) => {
@@ -1454,6 +1741,7 @@
         const k = form.dataset.checkForm;
         if (k === 'nernst-qual') checkNernstQual();
         else if (k === 'nernst-derive') checkNernstDerive();
+        else if (k === 'nernst-old-formula') checkNernstOldFormula();
         else if (k === 'nernst-old') checkNernstOld();
         else if (k === 'nernst-ex-cu') checkNernstExCu();
       });
@@ -1461,6 +1749,7 @@
 
     if (state.nernst.qualOk) checkNernstQual();
     if (state.nernst.deriveOk) checkNernstDerive();
+    if (state.nernst.oldFormulaOk) checkNernstOldFormula();
     if (state.nernst.oldCOk) checkNernstOld();
     if (state.nernst.exCuOk) checkNernstExCu();
   }
@@ -1504,7 +1793,7 @@
       if (det) det.open = false;
       ['#nernst-q1', '#nernst-q2', '#nernst-q3', '#nernst-reason-ratio', '#nernst-reason-log', '#nernst-slope-in', '#nernst-old-c', '#nernst-ex-cu'].forEach((s) => clearInvalid($(s)));
       renderProgress();
-      ['order', 'additiv', 'sentences', 'match', 'nernst-qual', 'nernst-derive', 'nernst-old', 'nernst-ex-cu'].forEach((id) => setFeedback(id, null, ''));
+      ['order', 'additiv', 'sentences', 'match', 'nernst-qual', 'nernst-derive', 'nernst-old-formula', 'nernst-old', 'nernst-ex-cu'].forEach((id) => setFeedback(id, null, ''));
     });
     document.addEventListener('click', (e) => {
       const b = e.target.closest('[data-check]');
