@@ -952,13 +952,13 @@
     badge.className = 'badge' + (count === C.SILVER_CELL_COMBOS.length ? ' is-done' : count >= 2 ? ' is-ready' : '');
 
     // Ionendichte links und rechts symbolisch und symmetrisch (ohne Elektroden-Überlappung)
-    const nDotsMap = { '0.1': 14, '0.01': 6, '0.001': 2 };
+    const nDotsMap = { '1': 16, '0.1': 11, '0.01': 6, '0.001': 2 };
     const nLeft = nDotsMap[String(cL)] || 6;
     const nRight = nDotsMap[String(cR)] || 6;
     const dotCoords = [
       [120, 175], [142, 198], [164, 172], [126, 212], [154, 216],
       [176, 194], [116, 192], [138, 166], [168, 214], [182, 176],
-      [148, 184], [128, 184], [174, 206], [158, 198],
+      [148, 184], [128, 184], [174, 206], [158, 198], [146, 206], [160, 184],
     ];
     let leftDots = '';
     for (let i = 0; i < nLeft; i++) {
@@ -1093,17 +1093,17 @@
     const hostA = $('#nernst-chart-linear');
     {
       const W = 420, H = 265, x0 = 62, x1 = 398, y0 = 218, y1 = 20;
-      const xPx = (r) => x0 + (r / 105) * (x1 - x0);
-      const yPx = (u) => y0 - ((u + 0.01) / 0.155) * (y0 - y1);
+      const xPx = (r) => x0 + (r / 1050) * (x1 - x0);
+      const yPx = (u) => y0 - ((u + 0.01) / 0.215) * (y0 - y1);
       let s = `<svg role="img" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" aria-label="Diagramm A: Zellspannung U gegen lineares Konzentrationsverhältnis c2 zu c1">`;
       s += '<title>Zellspannung U gegen lineares Konzentrationsverhältnis c₂ / c₁</title>';
-      for (let u = 0; u <= 0.121; u += 0.03) {
+      for (let u = 0; u <= 0.201; u += 0.05) {
         const y = yPx(u);
         s += `<line x1="${x0}" y1="${y}" x2="${x1}" y2="${y}" stroke="${Math.abs(u) < 1e-6 ? '#b8c6d4' : '#e7edf2'}"/>`;
         s += `<line x1="${x0 - 4}" y1="${y}" x2="${x0}" y2="${y}" stroke="#7f91a3"/>`;
         s += `<text x="${x0 - 8}" y="${y + 3.5}" class="svg-tiny" text-anchor="end">${esc(C.fmtNum(u, 2))}</text>`;
       }
-      for (let r = 0; r <= 101; r += 20) {
+      for (let r = 0; r <= 1001; r += 200) {
         const x = xPx(r);
         s += `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y0}" stroke="#eef2f6"/>`;
         s += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y0 + 4}" stroke="#7f91a3"/>`;
@@ -1117,7 +1117,7 @@
       if (measured.length >= 2) {
         let pathD = '';
         for (let i = 0; i <= 50; i++) {
-          const lg = (2 * i) / 50;
+          const lg = (3 * i) / 50;
           const r = Math.pow(10, lg);
           const u = C.NERNST * lg;
           pathD += (i === 0 ? 'M' : 'L') + xPx(r).toFixed(1) + ' ' + yPx(u).toFixed(1) + ' ';
@@ -1144,21 +1144,21 @@
     const summaryEl = $('#nernst-reg-summary');
     {
       const W = 460, H = 285, x0 = 68, x1 = 426, y0 = 224, y1 = 22;
-      const xMin = -0.15, xMax = 2.25;
-      const yMin = -0.01, yMax = 0.145;
+      const xMin = -0.2, xMax = 3.25;
+      const yMin = -0.01, yMax = 0.205;
       const xPx = (x) => x0 + ((x - xMin) / (xMax - xMin)) * (x1 - x0);
       const yPx = (y) => y0 - ((y - yMin) / (yMax - yMin)) * (y0 - y1);
 
       let s = `<svg role="img" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" aria-label="Diagramm B: Zellspannung U gegen den dekadischen Logarithmus von c2 zu c1">`;
       s += '<title>Zellspannung U = ΔE gegen lg(c₂ / c₁)</title>';
 
-      for (let yv = 0; yv <= 0.121; yv += 0.03) {
+      for (let yv = 0; yv <= 0.201; yv += 0.05) {
         const y = yPx(yv);
         s += `<line x1="${x0}" y1="${y}" x2="${x1}" y2="${y}" stroke="${Math.abs(yv) < 1e-6 ? '#b8c6d4' : '#e7edf2'}"/>`;
         s += `<line x1="${x0 - 4}" y1="${y}" x2="${x0}" y2="${y}" stroke="#7f91a3"/>`;
         s += `<text x="${x0 - 8}" y="${y + 3.5}" class="svg-tiny" text-anchor="end">${esc(C.fmtNum(yv, 2))}</text>`;
       }
-      const xLabels = [[0, '(1 : 1)'], [1, '(10 : 1)'], [2, '(100 : 1)']];
+      const xLabels = [[0, '(1 : 1)'], [1, '(10 : 1)'], [2, '(100 : 1)'], [3, '(1000 : 1)']];
       for (const [xv, sub] of xLabels) {
         const x = xPx(xv);
         const isZero = xv === 0;
@@ -1178,8 +1178,8 @@
 
       if (showFit && reg) {
         const ly0 = reg.intercept;
-        const ly2 = reg.slope * 2 + reg.intercept;
-        s += `<line x1="${xPx(0)}" y1="${yPx(ly0)}" x2="${xPx(2)}" y2="${yPx(ly2)}" stroke="#006699" stroke-width="2.2"/>`;
+        const ly3 = reg.slope * 3 + reg.intercept;
+        s += `<line x1="${xPx(0)}" y1="${yPx(ly0)}" x2="${xPx(3)}" y2="${yPx(ly3)}" stroke="#006699" stroke-width="2.2"/>`;
 
         // Steigungsdreieck links-oben über der Geraden (1 -> 2), kollisionsfrei mit Kupfer (z = 2)
         const ty1 = reg.slope * 1 + reg.intercept;
@@ -1192,8 +1192,8 @@
 
       if (showCu) {
         const cuSlope = C.NERNST / 2;
-        s += `<line x1="${xPx(0)}" y1="${yPx(0)}" x2="${xPx(2)}" y2="${yPx(cuSlope * 2)}" stroke="#c8703a" stroke-width="2.2" stroke-dasharray="6 4"/>`;
-        for (let xv = 0; xv <= 2; xv++) {
+        s += `<line x1="${xPx(0)}" y1="${yPx(0)}" x2="${xPx(3)}" y2="${yPx(cuSlope * 3)}" stroke="#c8703a" stroke-width="2.2" stroke-dasharray="6 4"/>`;
+        for (let xv = 0; xv <= 3; xv++) {
           s += `<circle cx="${xPx(xv)}" cy="${yPx(cuSlope * xv)}" r="3.6" fill="#c8703a" stroke="#fff" stroke-width="1"><title>Kupfer (z = 2): lg(c₂/c₁) = ${xv}, U ≈ ${esc(C.fmtNum(cuSlope * xv, 3))} V</title></circle>`;
         }
         s += `<rect x="${x0 + 8}" y="${y1 + 4}" width="186" height="36" rx="4" fill="rgba(255,255,255,0.92)" stroke="#cfdbe6"/>`;
@@ -1291,8 +1291,8 @@
       if (!lOk) hints.push('Verzehnfachung von c₂ / c₁ auf 100 verdoppelt U (lg 100 = 2)');
       if (!mOk) {
         hints.push(m !== null && m >= 55 && m <= 63
-          ? 'Proportionalitätsfaktor x in Volt angeben (0,059 V statt 59 mV)'
-          : 'Faktor x ≈ 0,059 V (Steigung aus Diagramm B)');
+          ? 'Proportionalitätsfaktor x in Volt (V) statt Millivolt (mV) angeben – teile deinen Wert durch 1000'
+          : 'Faktor x als Steigung ΔU / Δ(lg(c₂ / c₁)) aus Tabelle oder Diagramm B bestimmen');
       }
       setFeedback('nernst-derive', false, '✘ Noch nicht ganz vollständig: ' + hints.join('; ') + '.');
     }
@@ -1324,7 +1324,7 @@
     if (ok) {
       setFeedback('nernst-ex-cu', true, '✔ Richtig! Für Kupfer (z = 2) beträgt der Vorfaktor 0,059 V / 2 = 0,0295 V. Bei c₂ / c₁ = 100 gilt ΔE = 0,0295 V · 2 = 0,059 V.');
     } else if (v !== null && v >= 57 && v <= 61) {
-      setFeedback('nernst-ex-cu', false, '✘ Bitte in Volt statt Millivolt angeben (0,059 V statt 59 mV).');
+      setFeedback('nernst-ex-cu', false, '✘ Bitte in Volt (V) statt Millivolt (mV) angeben – teile dein Ergebnis durch 1000.');
     } else {
       setFeedback('nernst-ex-cu', false, '✘ Prüfe deine Rechnung: Bei Kupfer (Cu ⇌ Cu²⁺ + 2 e⁻) ist z = 2. Multipliziere 0,059 V / 2 mit lg(0,1 / 0,001) = 2.');
     }
@@ -1392,7 +1392,7 @@
       renderNernstTable();
       renderNernstCharts();
       renderProgress();
-      $('#nernst-status').textContent = '✔ Alle 4 Silber-Konzentrationszellen wurden in die Messtabelle übernommen.';
+      $('#nernst-status').textContent = '✔ Alle ' + C.SILVER_CELL_COMBOS.length + ' Silber-Konzentrationszellen wurden in die Messtabelle übernommen.';
     });
 
     $('#nernst-open-lab').addEventListener('click', () => openInMainLab('Ag', state.nernst.cLeft, state.nernst.cRight));

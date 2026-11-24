@@ -43,8 +43,8 @@ function makeClassList(el) {
 }
 
 function makeCanvasCtx() {
-  const grad = { addColorStop() {} };
-  const noop = () => {};
+  const grad = { addColorStop() { } };
+  const noop = () => { };
   return new Proxy({
     measureText: (t) => ({ width: String(t || '').length * 7 }),
     createLinearGradient: () => grad,
@@ -72,7 +72,7 @@ function createNode(tag, attrs, doc) {
     _checked: Object.prototype.hasOwnProperty.call(attrs, 'checked'),
     _open: Object.prototype.hasOwnProperty.call(attrs, 'open'),
     _listeners: {},
-    style: { setProperty() {} },
+    style: { setProperty() { } },
     get id() { return this.attributes.id || ''; },
     set id(v) { this.attributes.id = String(v); },
     get className() { return this.attributes.class || ''; },
@@ -215,7 +215,7 @@ function createNode(tag, attrs, doc) {
       visit(this);
       return out;
     },
-    scrollIntoView() {},
+    scrollIntoView() { },
     getContext() { return makeCanvasCtx(); },
   };
   el.classList = makeClassList(el);
@@ -341,11 +341,11 @@ function mountApp(initialStorage, confirmResult = true) {
     location: { href: 'http://localhost/' },
     matchMedia: () => ({ matches: false }),
     confirm: () => confirmResult,
-    print: () => {},
+    print: () => { },
     requestAnimationFrame: () => 1,
     setInterval: () => 1,
-    clearInterval: () => {},
-    IntersectionObserver: function () { return { observe() {} }; },
+    clearInterval: () => { },
+    IntersectionObserver: function () { return { observe() { } }; },
     localStorage: {
       getItem: (k) => (Object.prototype.hasOwnProperty.call(store, k) ? store[k] : null),
       setItem: (k, v) => { store[k] = String(v); },
@@ -447,7 +447,7 @@ test('Auswertung (3a, 3b), Ziel-Experiment Alte AgNO3-Lösung, Transferaufgabe, 
   slopeIn.dispatchEvent({ type: 'input', target: slopeIn });
   doc.querySelector('form[data-check-form="nernst-derive"]').dispatchEvent({ type: 'submit' });
   assert.equal(slopeIn.getAttribute('aria-invalid'), 'true');
-  assert.ok(doc.querySelector('#fb-nernst-derive').textContent.includes('statt 59 mV'));
+  assert.ok(doc.querySelector('#fb-nernst-derive').textContent.includes('statt Millivolt (mV)'));
 
   slopeIn.value = '0,059';
   slopeIn.dispatchEvent({ type: 'input', target: slopeIn });
@@ -493,7 +493,7 @@ test('Auswertung (3a, 3b), Ziel-Experiment Alte AgNO3-Lösung, Transferaufgabe, 
   cuIn.dispatchEvent({ type: 'input', target: cuIn });
   doc.querySelector('form[data-check-form="nernst-ex-cu"]').dispatchEvent({ type: 'submit' });
   assert.equal(cuIn.getAttribute('aria-invalid'), 'true');
-  assert.ok(doc.querySelector('#fb-nernst-ex-cu').textContent.includes('statt 59 mV'));
+  assert.ok(doc.querySelector('#fb-nernst-ex-cu').textContent.includes('statt Millivolt (mV)'));
 
   cuIn.value = '0,059';
   cuIn.dispatchEvent({ type: 'input', target: cuIn });
@@ -516,4 +516,14 @@ test('Auswertung (3a, 3b), Ziel-Experiment Alte AgNO3-Lösung, Transferaufgabe, 
   assert.equal(doc.querySelector('#nernst-badge').textContent, '0 / 7 gemessen');
   assert.equal(doc.querySelector('#nernst-formula-details').open, false);
   assert.equal(doc.querySelector('#fb-nernst-old').textContent, '');
+});
+
+test('Eingabehinweise spoilern keine konkreten Lösungswerte', () => {
+  const { doc } = mountApp();
+  const slopeHint = doc.querySelector('#nernst-slope-hint').textContent;
+  const oldHint = doc.querySelector('#nernst-old-c-hint').textContent;
+  const cuHint = doc.querySelector('#nernst-ex-cu-hint').textContent;
+  assert.equal(slopeHint.includes('0,059'), false, slopeHint);
+  assert.equal(oldHint.includes('0,020'), false, oldHint);
+  assert.equal(cuHint.includes('0,059'), false, cuHint);
 });

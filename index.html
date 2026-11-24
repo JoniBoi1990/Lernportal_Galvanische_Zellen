@@ -532,7 +532,7 @@
         <figure class="nernst-figure">
           <figcaption class="figure-title">Diagramm A: <em>U</em> = Δ<em>E</em> gegen das lineare Verhältnis <em>c₂</em> / <em>c₁</em></figcaption>
           <div id="nernst-chart-linear" class="nernst-chart-stage"></div>
-          <p class="small-note">Keine lineare Abhängigkeit von <em>c₂</em> / <em>c₁</em>: Verzehnfacht sich das Verhältnis (10:1 → 100:1 → 1000:1), steigt <em>U</em> nicht um das Zehnfache, sondern in gleichen Schritten (≈ 0,059 V → ≈ 0,118 V → ≈ 0,177 V).</p>
+          <p class="small-note">Keine lineare Abhängigkeit von <em>c₂</em> / <em>c₁</em>: Verzehnfacht sich das Verhältnis (10:1 → 100:1 → 1000:1), steigt <em>U</em> nicht um das Zehnfache, sondern jeweils um denselben konstanten Betrag.</p>
         </figure>
         <figure class="nernst-figure">
           <figcaption class="figure-title">Diagramm B: <em>U</em> = Δ<em>E</em> gegen lg(<em>c₂</em> / <em>c₁</em>)</figcaption>
@@ -585,7 +585,7 @@
         <h4>3b) Logarithmische Proportionalität begründen &amp; Faktor <em>x</em> bestimmen</h4>
         <form class="nernst-form" data-check-form="nernst-derive" novalidate>
           <p class="sentence">
-            Die Kombinationen (0,01 M ‖ 0,1 M) und (0,001 M ‖ 0,01 M) liefern dieselbe Spannung (≈ 0,059 V), weil beide
+            Die Kombinationen (0,01 M ‖ 0,1 M) und (0,001 M ‖ 0,01 M) liefern innerhalb der Messgenauigkeit dieselbe Spannung, weil beide
             <select id="nernst-reason-ratio" aria-label="Begründung für gleiche Spannung bei 0,01/0,1 und 0,001/0,01">
               <option value="">…</option>
               <option value="ratio">dasselbe Konzentrationsverhältnis c₂ / c₁ = 10 besitzen</option>
@@ -602,7 +602,7 @@
           <div class="nernst-input-grid">
             <div class="field-group">
               <label for="nernst-slope-in">Proportionalitätsfaktor <em>x</em> deiner Messreihe (in <em>U</em> = Δ<em>E</em> = <em>x</em> V · lg(<em>c₂</em> / <em>c₁</em>)):</label>
-              <span id="nernst-slope-hint" class="field-hint">Dezimalzahl in V (Steigung der Ausgleichsgeraden, z. B. 0,059)</span>
+              <span id="nernst-slope-hint" class="field-hint">Dezimalzahl in V mit Komma und 3 Nachkommastellen (Steigung aus Tabelle oder Diagramm B bestimmen)</span>
               <div class="input-unit">
                 <input type="text" id="nernst-slope-in" inputmode="decimal" autocomplete="off" aria-describedby="nernst-slope-hint" size="8">
                 <span>V</span>
@@ -665,7 +665,7 @@
         <form class="nernst-form" data-check-form="nernst-old" novalidate>
           <div class="field-group">
             <label for="nernst-old-c">Ermittelte Konzentration <em>c</em><sub>alt</sub>(Ag⁺) der alten Silbernitrat-Lösung:</label>
-            <span id="nernst-old-c-hint" class="field-hint">Dezimalzahl in mol/L, z. B. 0,020</span>
+            <span id="nernst-old-c-hint" class="field-hint">Dezimalzahl in mol/L mit Komma (auf 3 Nachkommastellen runden)</span>
             <div class="input-unit">
               <input type="text" id="nernst-old-c" inputmode="decimal" autocomplete="off" aria-describedby="nernst-old-c-hint" size="10">
               <span>mol/L</span>
@@ -750,7 +750,7 @@
         <form class="nernst-form" data-check-form="nernst-ex-cu" novalidate>
           <div class="field-group">
             <label for="nernst-ex-cu">Berechnete Zellspannung Δ<em>E</em>:</label>
-            <span id="nernst-ex-cu-hint" class="field-hint">Angabe in V mit 3 Nachkommastellen (z. B. 0,059)</span>
+            <span id="nernst-ex-cu-hint" class="field-hint">Dezimalzahl in V mit Komma (auf 3 Nachkommastellen runden)</span>
             <div class="input-unit">
               <input type="text" id="nernst-ex-cu" inputmode="decimal" autocomplete="off" aria-describedby="nernst-ex-cu-hint" size="8">
               <span>V</span>
