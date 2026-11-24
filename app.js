@@ -8,6 +8,25 @@
   const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
 
   /* ---------- Zustand ---------- */
+  const DEFAULT_NERNST = () => ({
+    selectedC: 0.1,
+    measured: {},
+    chartMode: 'E',
+    showFit: true,
+    showCuCompare: false,
+    qualitative: { q1: '', q2: '', q3: '' },
+    qualOk: false,
+    slope: '',
+    intercept: '',
+    formulaSign: '',
+    formulaLog: '',
+    deriveOk: false,
+    exCu: '',
+    exCuOk: false,
+    exUnknown: '',
+    exUnknownOk: false,
+  });
+
   const DEFAULT_STATE = () => ({
     lab: {
       left: { metal: '', electrolyte: '', c: 0.1 },
@@ -19,6 +38,7 @@
     extra: [],
     tasks: { order: ['', '', '', ''], orderOk: false, additiv: '', additivOk: false, sentenceCell: '', sentences: {}, sentencesOk: false, match: {}, matchOk: false, dlNotes: '' },
     dl: {},
+    nernst: DEFAULT_NERNST(),
   });
 
   let state = load();
@@ -28,6 +48,8 @@
       if (!raw) return DEFAULT_STATE();
       const s = JSON.parse(raw);
       const d = DEFAULT_STATE();
+      const dn = DEFAULT_NERNST();
+      const sn = s.nernst || {};
       return {
         lab: Object.assign(d.lab, s.lab || {}),
         ui: Object.assign(d.ui, s.ui || {}),
@@ -35,6 +57,10 @@
         extra: Array.isArray(s.extra) ? s.extra : [],
         tasks: Object.assign(d.tasks, s.tasks || {}),
         dl: s.dl || {},
+        nernst: Object.assign(dn, sn, {
+          measured: Object.assign({}, sn.measured || {}),
+          qualitative: Object.assign(dn.qualitative, sn.qualitative || {}),
+        }),
       };
     } catch (e) {
       return DEFAULT_STATE();
@@ -263,7 +289,8 @@
     else if (an.reading < 0) msg = 'Negative Anzeige: Das rote Kabel (V) hängt am Minuspol (' + name(lab[an.anodeSide].metal) + '). Tausche die Kabel, damit eine positive Spannung angezeigt wird.';
     else {
       const U = C.measuredDeltaE(lab.left, lab.right);
-      msg = 'Stabile, positive Spannung: U ≈ ' + C.fmtNum(U, 2) + ' V. Das rote Kabel (V) hängt am Pluspol (' + name(lab[an.cathodeSide].metal) + '), das schwarze (COM) am Minuspol (' + name(lab[an.anodeSide].metal) + '). → Übernimm den Messwert in die Versuchsgalerie (Schritt 4).';
+      const dec = lab.left.metal === lab.right.metal ? 3 : 2;
+      msg = 'Stabile, positive Spannung: U ≈ ' + C.fmtNum(U, dec) + ' V. Das rote Kabel (V) hängt am Pluspol (' + name(lab[an.cathodeSide].metal) + '), das schwarze (COM) am Minuspol (' + name(lab[an.anodeSide].metal) + '). → Übernimm den Messwert in die Versuchsgalerie (Schritt 4).';
     }
     box.textContent = msg;
   }
@@ -308,7 +335,8 @@
     renderGallery();
     renderTasks();
     renderProgress();
-    setStatusOnce('✔ Messwert U = ' + C.fmtNum(U, 2) + ' V in die Versuchsgalerie übernommen. ' + (isCore ? 'Bestimme dort Minus- und Pluspol.' : '(Expertenmessung)'));
+    const dec = anode.metal === cathode.metal ? 3 : 2;
+    setStatusOnce('✔ Messwert U = ' + C.fmtNum(U, dec) + ' V in die Versuchsgalerie übernommen. ' + (isCore ? 'Bestimme dort Minus- und Pluspol.' : '(Expertenmessung)'));
   }
 
   /* ---------- SVG-Versuchsaufbau ---------- */
@@ -424,8 +452,9 @@
       html += '<li><strong>Innerer Stromkreis:</strong> NO₃⁻-Ionen der Salzbrücke wandern in den Anodenraum (dort entstehen zusätzliche Kationen), K⁺-Ionen in den Kathodenraum (dort werden Kationen verbraucht) – Ladungsausgleich.</li>';
       html += '</ul>';
     }
+    const dec = A.metal === K.metal ? 3 : 2;
     html += '<p class="small-note"><strong>Zelldiagramm:</strong> ' + esc(C.cellDiagram(A, K)) + '</p>';
-    html += '<p class="small-note"><strong>Zellspannung:</strong> ΔE = E(Kathode) − E(Anode) = ' + C.fmtNum(EK, 2) + ' V − (' + C.fmtNum(EA, 2) + ' V) = ' + C.fmtNum(EK - EA, 2) + ' V' + (state.ui.expert || A.c !== 1 ? ' <span class="muted">(E nach Nernst: E = E° + 0,059 V / z · lg c)</span>' : '') + '</p>';
+    html += '<p class="small-note"><strong>Zellspannung:</strong> ΔE = E(Kathode) − E(Anode) = ' + C.fmtNum(EK, dec) + ' V − (' + C.fmtNum(EA, dec) + ' V) = ' + C.fmtNum(EK - EA, dec) + ' V' + (state.ui.expert || A.c !== 1 ? ' <span class="muted">(E nach Nernst: E = E° + 0,059 V / z · lg c)</span>' : '') + '</p>';
     void EL; void ER;
     box.innerHTML = html;
   }
@@ -436,6 +465,8 @@
     const an = analysis;
     const host = $('#water-model');
     const yOf = (E) => 22 + ((E + 0.95) / 1.85) * 168; // negatives E oben
+    const isConc = an.conjugate && lab.left.metal === lab.right.metal;
+    const dec = isConc ? 3 : 2;
     let s = '<svg viewBox="0 0 380 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">';
     s += '<line x1="40" y1="16" x2="40" y2="200" stroke="#9aa8b5"/>';
     s += '<text x="8" y="14" class="svg-tiny" text-anchor="start">E in V</text>';
@@ -456,9 +487,10 @@
       const E = C.potential(hc.metal, hc.c);
       const y = yOf(E);
       const col = P[hc.metal].solution.replace(/0\.\d+\)$/, '0.95)');
+      const cLbl = (state.ui.expert || isConc) ? ` (${C.fmtC(hc.c)} M)` : '';
       let r = `<path d="M${cx - 48} ${y} Q${cx} ${y + 26} ${cx + 48} ${y}" fill="${col}" stroke="#4d7ea8" stroke-width="1.5"/>`;
       r += `<path d="M${cx - 60} ${y - 4} L${cx - 48} ${y} M${cx + 48} ${y} L${cx + 60} ${y - 4}" stroke="#6b7b6b" stroke-width="2"/>`;
-      r += `<text x="${cx}" y="${y - 8}" class="svg-tiny" font-weight="700">${hc.metal}: E = ${C.fmtNum(E, 2)} V</text>`;
+      r += `<text x="${cx}" y="${y - 8}" class="svg-tiny" font-weight="700">${hc.metal}${cLbl}: E = ${C.fmtNum(E, dec)} V</text>`;
       return r;
     };
     s += lake('left', 130) + lake('right', 280);
@@ -466,7 +498,7 @@
       const yA = yOf(C.potential(lab[an.anodeSide].metal, lab[an.anodeSide].c));
       const yK = yOf(C.potential(lab[an.cathodeSide].metal, lab[an.cathodeSide].c));
       s += `<line x1="205" y1="${yA}" x2="205" y2="${yK}" stroke="#d96b43" stroke-width="2" marker-end="url(#arr)" marker-start="url(#arr)"/>`;
-      s += `<text x="212" y="${(yA + yK) / 2 + 4}" class="svg-tiny" text-anchor="start" font-weight="700" fill="#9c381c">ΔE = ${C.fmtNum(an.deltaE, 2)} V</text>`;
+      s += `<text x="212" y="${(yA + yK) / 2 + 4}" class="svg-tiny" text-anchor="start" font-weight="700" fill="#9c381c">ΔE = ${C.fmtNum(an.deltaE, dec)} V</text>`;
       s += '<defs><marker id="arr" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#d96b43"/></marker></defs>';
       const flowing = an.valid && lab.device === 'motor';
       if (flowing) {
@@ -627,7 +659,10 @@
     const ex = $('#extra-measurements');
     if (!state.extra.length) { ex.innerHTML = ''; return; }
     ex.innerHTML = '<h3>Weitere Messungen (Expertenmodus)</h3><div class="table-wrap"><table class="gallery-table"><thead><tr><th scope="col">Zelldiagramm</th><th scope="col">U gemessen</th><th scope="col">ΔE berechnet (Nernst)</th></tr></thead><tbody>' +
-      state.extra.map((e) => `<tr><td>${esc(e.diagram)}</td><td class="num">${C.fmtNum(e.U, 2)} V</td><td class="num">${C.fmtNum(e.theo, 3)} V</td></tr>`).join('') + '</tbody></table></div>';
+      state.extra.map((e) => {
+        const dec = e.anode === e.cathode ? 3 : 2;
+        return `<tr><td>${esc(e.diagram)}</td><td class="num">${C.fmtNum(e.U, dec)} V</td><td class="num">${C.fmtNum(e.theo, 3)} V</td></tr>`;
+      }).join('') + '</tbody></table></div>';
   }
 
   function galleryFeedback(g) {
@@ -832,6 +867,8 @@
     { term: 'Elektrische Stromstärke (I in A)', text: 'Die Menge an elektrischer Ladung (Anzahl der Elektronen im Kabel bzw. Ionen in der Lösung), die pro Sekunde durch den Querschnitt des Leiters fließt.', water: 'Die Wassermenge pro Sekunde (Liter/s), die durch die Rohrleitung strömt.', short: 'Ladung, die pro Sekunde durch den Leiterquerschnitt fließt.' },
     { term: 'Elektrischer Widerstand (R in Ω)', text: 'Maß dafür, wie stark der Fluss der Ladungsträger im Kabel, am Messgerät oder in den Poren der Salzbrücke abgebremst bzw. behindert wird.', water: 'Eine Engstelle oder Steine im Rohr, die den Wasserstrom abbremsen.', short: 'Maß dafür, wie stark der Ladungsfluss behindert wird.' },
     { term: 'Geschlossener Stromkreis', text: 'Dauerstrom fließt nur im geschlossenen Kreis aus zwei Teilen: 1. Äußerer Kreis (Elektronen fließen durchs Metallkabel) und 2. Innerer Kreis (Ionen wandern durch Elektrolyt & Salzbrücke).', water: 'Geschlossener Wasserkreislauf mit Pumpe und Rücklauf; wird ein Rohr abgeklemmt, stoppt alles.', short: 'Äußerer Kreis (Elektronen im Kabel) + innerer Kreis (Ionen in Lösung und Salzbrücke).' },
+    { term: 'Konzentrationszelle (Konzentrationskette)', text: 'Eine galvanische Zelle aus zwei Halbzellen desselben Redoxpaares mit unterschiedlichen Ionenkonzentrationen. Die Halbzelle mit der geringeren Konzentration besitzt nach Le Chatelier und Nernst das niedrigere Potenzial und bildet die Anode (Minuspol).', short: 'Galvanische Zelle aus zwei gleichen Halbzellen mit unterschiedlicher Ionenkonzentration.' },
+    { term: 'Nernst-Gleichung', text: 'Beschreibt die Konzentrationsabhängigkeit des Elektrodenpotenzials: Bei 25 °C gilt für Metall-Halbzellen E = E° + (0,059 V / z) · lg c(M^z+). Eine Konzentrationsänderung um den Faktor 10 verschiebt das Potenzial um 59 mV / z.', short: 'Formel zur Berechnung des Halbzellenpotenzials in Abhängigkeit von der Ionenkonzentration.' },
   ];
 
   function renderGlossary() {
@@ -873,6 +910,584 @@
   }
 
   /* =====================================================================
+     NERNST-GLEICHUNG (SILBER-KONZENTRATIONSZELLE)
+     ===================================================================== */
+  function nernstKey(c) {
+    return String(c);
+  }
+
+  function nernstMeasuredPoints() {
+    const pts = [];
+    for (const c of C.NERNST_SERIES) {
+      const m = state.nernst.measured[nernstKey(c)];
+      if (m) pts.push(Object.assign({}, C.concentrationCellPoint('Ag', c, 1), m));
+    }
+    return pts;
+  }
+
+  function openInMainLab(metal, cLeft, cRight) {
+    state.ui.expert = true;
+    $('#expert-mode').checked = true;
+    state.lab.left = { metal, electrolyte: metal, c: cLeft };
+    state.lab.right = { metal, electrolyte: metal, c: cRight };
+    state.lab.cables = true;
+    state.lab.redSide = 'right';
+    state.lab.bridge = 'kno3';
+    state.lab.device = 'voltmeter';
+    onLabChange();
+    const target = document.getElementById('labor');
+    if (target) {
+      target.scrollIntoView({ behavior: window.GZParticles && window.GZParticles.reduceMotion ? 'auto' : 'smooth' });
+    }
+  }
+
+  function renderNernstApparatus() {
+    const c = state.nernst.selectedC;
+    const pt = C.concentrationCellPoint('Ag', c, 1);
+    const host = $('#nernst-apparatus');
+    const count = nernstMeasuredPoints().length;
+    const badge = $('#nernst-badge');
+    badge.textContent = count + ' / ' + C.NERNST_SERIES.length + ' gemessen';
+    badge.className = 'badge' + (count === C.NERNST_SERIES.length ? ' is-done' : count >= 2 ? ' is-ready' : '');
+
+    // Ionendichte links symbolisch darstellen
+    const nDotsMap = { '1': 15, '0.1': 9, '0.01': 5, '0.001': 3, '0.0001': 1 };
+    const nLeft = nDotsMap[nernstKey(c)] || 5;
+    const dotCoords = [
+      [120, 175], [142, 198], [164, 172], [126, 212], [154, 216],
+      [176, 194], [116, 192], [138, 166], [168, 214], [182, 176],
+      [148, 184], [128, 184], [174, 206], [158, 198], [134, 204],
+    ];
+    let leftDots = '';
+    for (let i = 0; i < nLeft; i++) {
+      const [dx, dy] = dotCoords[i];
+      leftDots += `<circle cx="${dx}" cy="${dy}" r="3.4" fill="#9aa3ae" stroke="#5e6873" stroke-width="0.8"/>`;
+    }
+    let rightDots = '';
+    for (let i = 0; i < 15; i++) {
+      const [dx, dy] = dotCoords[i];
+      rightDots += `<circle cx="${dx + 250}" cy="${dy}" r="3.4" fill="#9aa3ae" stroke="#5e6873" stroke-width="0.8"/>`;
+    }
+
+    const isAnode = pt.anodeSide === 'test';
+    const title = `Silber-Konzentrationszelle: Links ${C.fmtC(c)} mol/L (${C.fmtSci(c)}), rechts 1 mol/L, Spannung ${C.fmtNum(pt.U, 3)} V`;
+    host.innerHTML = `<svg role="img" viewBox="0 0 500 268" xmlns="http://www.w3.org/2000/svg" aria-label="${esc(title)}">
+      <title>${esc(title)}</title>
+      <!-- Becher links -->
+      <path d="M54 146 H194 V224 Q194 232 186 232 H62 Q54 232 54 224 Z" fill="rgba(234, 238, 242, 0.72)"/>
+      <path d="M50 108 V224 Q50 236 62 236 H186 Q198 236 198 224 V108" fill="none" stroke="#6f8396" stroke-width="2.2"/>
+      <rect x="82" y="84" width="22" height="134" rx="2" fill="#d3d8de" stroke="#959ca5" stroke-width="1.5"/>
+      <text x="93" y="198" class="svg-metal" transform="rotate(-90 93 198)">Silber</text>
+      ${leftDots}
+      <text x="124" y="254" class="svg-label">Ag | AgNO₃ (${esc(C.fmtC(c))} M)</text>
+      ${isAnode ? '<circle cx="93" cy="69" r="10" fill="#1756c9"/><text x="93" y="73.5" class="svg-pole">−</text>' : ''}
+      <!-- Becher rechts (Bezugshalbzelle) -->
+      <path d="M304 146 H444 V224 Q444 232 436 232 H312 Q304 232 304 224 Z" fill="rgba(220, 227, 234, 0.85)"/>
+      <path d="M300 108 V224 Q300 236 312 236 H436 Q448 236 448 224 V108" fill="none" stroke="#6f8396" stroke-width="2.2"/>
+      <rect x="394" y="84" width="22" height="134" rx="2" fill="#d3d8de" stroke="#959ca5" stroke-width="1.5"/>
+      <text x="405" y="198" class="svg-metal" transform="rotate(-90 405 198)">Silber</text>
+      ${rightDots}
+      <text x="374" y="254" class="svg-label">Ag | AgNO₃ (c₀ = 1 M, E° = +0,80 V)</text>
+      ${isAnode ? '<circle cx="405" cy="69" r="10" fill="#b3261e"/><text x="405" y="73.5" class="svg-pole">+</text>' : ''}
+      <!-- Salzbrücke -->
+      <path d="M174 214 V120 Q174 102 192 102 H308 Q326 102 326 120 V214" fill="none" stroke="#d8c58f" stroke-width="12" stroke-linejoin="round"/>
+      <text x="250" y="94" class="svg-small">Salzbrücke (KNO₃)</text>
+      <!-- Kabel -->
+      <path d="M93 84 C93 48 150 56 212 56" fill="none" stroke="#222" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M405 84 C405 48 350 56 288 56" fill="none" stroke="#c62828" stroke-width="3.5" stroke-linecap="round"/>
+      <!-- Voltmeter -->
+      <rect x="192" y="10" width="116" height="60" rx="8" fill="#f2c230" stroke="#8a6d0b" stroke-width="2"/>
+      <rect x="202" y="17" width="96" height="25" rx="4" fill="#c9d8b6"/>
+      <text x="250" y="35" class="svg-lcd">${esc(C.fmtNum(pt.U, 3))} V</text>
+      <circle cx="212" cy="56" r="4.5" fill="#222"/><circle cx="288" cy="56" r="4.5" fill="#c62828"/>
+      <text x="227" y="59" class="svg-tiny">COM</text><text x="276" y="59" class="svg-tiny">V</text>
+    </svg>`;
+
+    $('#nernst-u').textContent = C.fmtNum(pt.U, 3) + ' V';
+    $('#nernst-e').textContent = C.fmtSigned(pt.E, 3) + ' V';
+    $('#nernst-role').textContent = isAnode ? 'Anode (−), Oxidation' : 'gleich (U = 0 V)';
+  }
+
+  function renderNernstTable() {
+    const body = $('#nernst-table-body');
+    const selected = state.nernst.selectedC;
+    let prevU = null;
+    const rows = C.NERNST_SERIES.map((c) => {
+      const k = nernstKey(c);
+      const saved = state.nernst.measured[k];
+      const pt = C.concentrationCellPoint('Ag', c, 1);
+      const isActive = Math.abs(c - selected) < 1e-12;
+      let deltaU = '—';
+      if (saved) {
+        if (prevU !== null) {
+          deltaU = '+' + C.fmtNum(saved.U - prevU, 3) + ' V';
+        }
+        prevU = saved.U;
+      }
+      return `<tr class="${isActive ? 'is-active' : ''}">
+        <th scope="row">${esc(C.fmtC(c))} (${esc(C.fmtSci(c))})</th>
+        <td class="num">${esc(C.fmtNum(pt.logC, 0))}</td>
+        <td class="num">${saved ? esc(C.fmtNum(saved.U, 3)) + ' V' : '<span class="muted">noch offen</span>'}</td>
+        <td class="num">${saved ? esc(C.fmtSigned(saved.E, 3)) + ' V' : '<span class="muted">—</span>'}</td>
+        <td class="num">${esc(deltaU)}</td>
+        <td><button type="button" class="btn btn-ghost btn-sm" data-nernst-select="${k}">${saved ? 'Anzeigen' : 'Wählen & messen'}</button></td>
+      </tr>`;
+    });
+    body.innerHTML = rows.join('');
+    $$('button[data-nernst-select]', body).forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const c = Number(btn.dataset.nernstSelect);
+        state.nernst.selectedC = c;
+        const radio = $(`input[name="nernst-c"][value="${nernstKey(c)}"]`);
+        if (radio) radio.checked = true;
+        if (!state.nernst.measured[nernstKey(c)]) {
+          recordNernstPoint(c);
+        } else {
+          save();
+          renderNernstApparatus();
+          renderNernstTable();
+          renderNernstCharts();
+        }
+      });
+    });
+  }
+
+  function recordNernstPoint(c) {
+    const pt = C.concentrationCellPoint('Ag', c, 1);
+    state.nernst.measured[nernstKey(c)] = { c: pt.c, logC: pt.logC, U: pt.U, E: pt.E };
+    save();
+    renderNernstApparatus();
+    renderNernstTable();
+    renderNernstCharts();
+    renderProgress();
+    const count = nernstMeasuredPoints().length;
+    $('#nernst-status').textContent = '✔ Messpunkt c = ' + C.fmtC(c) + ' mol/L (U = ' + C.fmtNum(pt.U, 3) + ' V, E = ' + C.fmtSigned(pt.E, 3) + ' V) übernommen (' + count + ' / ' + C.NERNST_SERIES.length + ').';
+  }
+
+  function renderNernstCharts() {
+    const measured = nernstMeasuredPoints();
+    const selectedC = state.nernst.selectedC;
+    const mode = state.nernst.chartMode;
+    const showFit = state.nernst.showFit;
+    const showCu = state.nernst.showCuCompare && mode === 'U';
+
+    // --- Diagramm A: E gegen lineare Konzentration c ---
+    const hostA = $('#nernst-chart-linear');
+    {
+      const W = 420, H = 265, x0 = 62, x1 = 398, y0 = 218, y1 = 20;
+      const xPx = (c) => x0 + (c / 1.05) * (x1 - x0);
+      const yPx = (E) => y0 - ((E - 0.52) / (0.84 - 0.52)) * (y0 - y1);
+      let s = `<svg role="img" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" aria-label="Diagramm A: Halbzellenpotenzial E gegen lineare Konzentration c">`;
+      s += '<title>Halbzellenpotenzial E(Ag/Ag⁺) gegen lineare Konzentration c</title>';
+      for (let E = 0.55; E <= 0.801; E += 0.05) {
+        const y = yPx(E);
+        s += `<line x1="${x0}" y1="${y}" x2="${x1}" y2="${y}" stroke="#e7edf2"/>`;
+        s += `<line x1="${x0 - 4}" y1="${y}" x2="${x0}" y2="${y}" stroke="#7f91a3"/>`;
+        s += `<text x="${x0 - 8}" y="${y + 3.5}" class="svg-tiny" text-anchor="end">${esc(C.fmtNum(E, 2))}</text>`;
+      }
+      for (let c = 0; c <= 1.01; c += 0.2) {
+        const x = xPx(c);
+        s += `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y0}" stroke="#eef2f6"/>`;
+        s += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y0 + 4}" stroke="#7f91a3"/>`;
+        s += `<text x="${x}" y="${y0 + 16}" class="svg-tiny" text-anchor="middle">${esc(C.fmtNum(c, 1))}</text>`;
+      }
+      s += `<line x1="${x0}" y1="${y1}" x2="${x0}" y2="${y0}" stroke="#516170" stroke-width="1.5"/>`;
+      s += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y0}" stroke="#516170" stroke-width="1.5"/>`;
+      s += `<text x="${(x0 + x1) / 2}" y="${H - 8}" class="svg-tiny" font-weight="700" text-anchor="middle">Konzentration c(Ag⁺) in mol/L</text>`;
+      s += `<text x="16" y="${(y0 + y1) / 2}" class="svg-tiny" font-weight="700" text-anchor="middle" transform="rotate(-90 16 ${(y0 + y1) / 2})">E(Ag / Ag⁺) in V</text>`;
+
+      // Gestrichelte logarithmische Kurve zur Orientierung bei vorhandenen Punkten
+      if (measured.length >= 2) {
+        let pathD = '';
+        for (let i = 0; i <= 50; i++) {
+          const logC = -4 + (4 * i) / 50;
+          const c = Math.pow(10, logC);
+          const E = C.potential('Ag', c);
+          pathD += (i === 0 ? 'M' : 'L') + xPx(c).toFixed(1) + ' ' + yPx(E).toFixed(1) + ' ';
+        }
+        s += `<path d="${pathD}" fill="none" stroke="#85a8c4" stroke-width="1.8" stroke-dasharray="5 4"/>`;
+      }
+
+      for (const pt of measured) {
+        const cx = xPx(pt.c);
+        const cy = yPx(pt.E);
+        const sel = Math.abs(pt.c - selectedC) < 1e-12;
+        if (sel) s += `<circle cx="${cx}" cy="${cy}" r="8" fill="none" stroke="#d96b43" stroke-width="2"/>`;
+        s += `<circle cx="${cx}" cy="${cy}" r="4.8" fill="#006699" stroke="#fff" stroke-width="1.2"><title>c = ${esc(C.fmtC(pt.c))} mol/L, E = ${esc(C.fmtSigned(pt.E, 3))} V</title></circle>`;
+      }
+      if (!measured.length) {
+        s += `<text x="${(x0 + x1) / 2}" y="${(y0 + y1) / 2}" class="svg-label">Noch keine Messpunkte übernommen</text>`;
+      }
+      s += '</svg>';
+      hostA.innerHTML = s;
+    }
+
+    // --- Diagramm B: Halblogarithmische Auftragung ---
+    const hostB = $('#nernst-chart-log');
+    const summaryEl = $('#nernst-reg-summary');
+    const titleB = $('#nernst-chart-b-title');
+    const capB = $('#nernst-chart-b-cap');
+
+    if (mode === 'E') {
+      titleB.innerHTML = 'Diagramm B: Halblogarithmische Auftragung <em>E</em> gegen lg <em>c</em>';
+      capB.innerHTML = 'Durch die Auftragung gegen lg(<em>c</em> / (mol/L)) entsteht eine Gerade der Form <em>E</em> = <em>b</em> + <em>m</em> · lg <em>c</em>.';
+    } else {
+      titleB.innerHTML = 'Diagramm B: Zellspannung <em>U</em> = Δ<em>E</em> gegen −lg <em>c</em>';
+      capB.innerHTML = 'Die Zellspannung <em>U</em> wächst proportional zu −lg <em>c</em> (Ursprungsgerade). Zum Vergleich lässt sich Kupfer (<em>z</em> = 2) einblenden.';
+    }
+
+    {
+      const W = 460, H = 285, x0 = 68, x1 = 426, y0 = 224, y1 = 22;
+      const xMin = mode === 'E' ? -4.25 : -0.25;
+      const xMax = mode === 'E' ? 0.35 : 4.25;
+      const yMin = mode === 'E' ? 0.52 : -0.015;
+      const yMax = mode === 'E' ? 0.84 : 0.265;
+      const xPx = (x) => x0 + ((x - xMin) / (xMax - xMin)) * (x1 - x0);
+      const yPx = (y) => y0 - ((y - yMin) / (yMax - yMin)) * (y0 - y1);
+
+      let s = `<svg role="img" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" aria-label="${esc(mode === 'E' ? 'Diagramm B: Potenzial E gegen lg c' : 'Diagramm B: Zellspannung U gegen minus lg c')}">`;
+      s += `<title>${esc(mode === 'E' ? 'Halblogarithmische Auftragung E(Ag/Ag⁺) gegen lg c' : 'Zellspannung U gegen −lg c')}</title>`;
+
+      const yStep = 0.05;
+      const yStart = mode === 'E' ? 0.55 : 0;
+      const yEnd = mode === 'E' ? 0.801 : 0.251;
+      for (let yv = yStart; yv <= yEnd; yv += yStep) {
+        const y = yPx(yv);
+        s += `<line x1="${x0}" y1="${y}" x2="${x1}" y2="${y}" stroke="${Math.abs(yv) < 1e-6 ? '#b8c6d4' : '#e7edf2'}"/>`;
+        s += `<line x1="${x0 - 4}" y1="${y}" x2="${x0}" y2="${y}" stroke="#7f91a3"/>`;
+        s += `<text x="${x0 - 8}" y="${y + 3.5}" class="svg-tiny" text-anchor="end">${esc(C.fmtNum(yv, 2))}</text>`;
+      }
+
+      const xTicks = mode === 'E' ? [-4, -3, -2, -1, 0] : [0, 1, 2, 3, 4];
+      for (const xv of xTicks) {
+        const x = xPx(xv);
+        const isZero = xv === 0;
+        s += `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y0}" stroke="${isZero ? '#b8c6d4' : '#eef2f6'}" ${isZero ? 'stroke-dasharray="4 3"' : ''}/>`;
+        s += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y0 + 4}" stroke="#7f91a3"/>`;
+        s += `<text x="${x}" y="${y0 + 15}" class="svg-tiny" text-anchor="middle">${esc(C.fmtNum(xv, 0))}</text>`;
+        const cTick = mode === 'E' ? Math.pow(10, xv) : Math.pow(10, -xv);
+        s += `<text x="${x}" y="${y0 + 27}" class="svg-tiny" text-anchor="middle" fill="#6a7a89">(${esc(C.fmtSci(cTick))})</text>`;
+      }
+
+      s += `<line x1="${x0}" y1="${y1}" x2="${x0}" y2="${y0}" stroke="#516170" stroke-width="1.5"/>`;
+      s += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y0}" stroke="#516170" stroke-width="1.5"/>`;
+      s += `<text x="${(x0 + x1) / 2}" y="${H - 8}" class="svg-tiny" font-weight="700" text-anchor="middle">${mode === 'E' ? 'lg(c / (mol/L))' : '−lg(c / (mol/L)) = lg(c₀ / c)'}</text>`;
+      s += `<text x="16" y="${(y0 + y1) / 2}" class="svg-tiny" font-weight="700" text-anchor="middle" transform="rotate(-90 16 ${(y0 + y1) / 2})">${mode === 'E' ? 'E(Ag / Ag⁺) in V' : 'Spannung U = ΔE in V'}</text>`;
+
+      if (mode === 'E') {
+        const x0Line = xPx(0);
+        const yE0 = yPx(0.8);
+        s += `<circle cx="${x0Line}" cy="${yE0}" r="3.5" fill="none" stroke="#1b7f3b" stroke-width="1.5"/>`;
+        s += `<text x="${x0Line - 6}" y="${yE0 - 8}" class="svg-tiny" font-weight="700" fill="#1b7f3b" text-anchor="end">E° = +0,80 V</text>`;
+      }
+
+      const dataPts = measured.map((pt) => ({
+        x: mode === 'E' ? pt.logC : -pt.logC,
+        y: mode === 'E' ? pt.E : pt.U,
+        c: pt.c,
+      }));
+      const reg = C.linearRegression(dataPts);
+
+      if (showFit && reg) {
+        const lx1 = mode === 'E' ? -4 : 0;
+        const lx2 = mode === 'E' ? 0 : 4;
+        const ly1 = reg.slope * lx1 + reg.intercept;
+        const ly2 = reg.slope * lx2 + reg.intercept;
+        s += `<line x1="${xPx(lx1)}" y1="${yPx(ly1)}" x2="${xPx(lx2)}" y2="${yPx(ly2)}" stroke="#006699" stroke-width="2.2"/>`;
+
+        // Steigungsdreieck über 1 Dekade
+        const tx1 = mode === 'E' ? -3 : 1;
+        const tx2 = tx1 + 1;
+        const ty1 = reg.slope * tx1 + reg.intercept;
+        const ty2 = reg.slope * tx2 + reg.intercept;
+        const px1 = xPx(tx1), px2 = xPx(tx2), py1 = yPx(ty1), py2 = yPx(ty2);
+        s += `<polyline points="${px1},${py1} ${px2},${py1} ${px2},${py2}" fill="none" stroke="#d96b43" stroke-width="1.8" stroke-dasharray="4 3"/>`;
+        s += `<text x="${(px1 + px2) / 2}" y="${py1 + 12}" class="svg-tiny" font-weight="700" fill="#9c381c" text-anchor="middle">${mode === 'E' ? 'Δ(lg c) = 1' : 'Δ(−lg c) = 1'}</text>`;
+        s += `<text x="${px2 + 5}" y="${(py1 + py2) / 2 + 3}" class="svg-tiny" font-weight="700" fill="#9c381c" text-anchor="start">${mode === 'E' ? 'ΔE' : 'ΔU'} = +${esc(C.fmtNum(reg.slope, 3))} V</text>`;
+      }
+
+      if (showCu) {
+        const cuSlope = C.NERNST / 2;
+        s += `<line x1="${xPx(0)}" y1="${yPx(0)}" x2="${xPx(4)}" y2="${yPx(cuSlope * 4)}" stroke="#c8703a" stroke-width="2.2" stroke-dasharray="6 4"/>`;
+        for (let xv = 0; xv <= 4; xv++) {
+          s += `<circle cx="${xPx(xv)}" cy="${yPx(cuSlope * xv)}" r="3.6" fill="#c8703a" stroke="#fff" stroke-width="1"><title>Kupfer (z = 2): −lg c = ${xv}, U ≈ ${esc(C.fmtNum(cuSlope * xv, 3))} V</title></circle>`;
+        }
+        // Kompakte Legende oben links
+        s += `<rect x="${x0 + 8}" y="${y1 + 4}" width="184" height="36" rx="4" fill="rgba(255,255,255,0.92)" stroke="#cfdbe6"/>`;
+        s += `<line x1="${x0 + 16}" y1="${y1 + 16}" x2="${x0 + 34}" y2="${y1 + 16}" stroke="#006699" stroke-width="2.2"/>`;
+        s += `<text x="${x0 + 40}" y="${y1 + 19}" class="svg-tiny" text-anchor="start">Ag (z = 1): 59 mV/Dekade</text>`;
+        s += `<line x1="${x0 + 16}" y1="${y1 + 30}" x2="${x0 + 34}" y2="${y1 + 30}" stroke="#c8703a" stroke-width="2.2" stroke-dasharray="4 3"/>`;
+        s += `<text x="${x0 + 40}" y="${y1 + 33}" class="svg-tiny" text-anchor="start">Cu (z = 2): 29,5 mV/Dekade</text>`;
+      }
+
+      for (const pt of dataPts) {
+        const cx = xPx(pt.x);
+        const cy = yPx(pt.y);
+        const sel = Math.abs(pt.c - selectedC) < 1e-12;
+        if (sel) s += `<circle cx="${cx}" cy="${cy}" r="8" fill="none" stroke="#d96b43" stroke-width="2"/>`;
+        s += `<circle cx="${cx}" cy="${cy}" r="4.8" fill="#006699" stroke="#fff" stroke-width="1.2"><title>c = ${esc(C.fmtC(pt.c))} mol/L, ${mode === 'E' ? 'E' : 'U'} = ${esc(C.fmtNum(pt.y, 3))} V</title></circle>`;
+      }
+
+      if (!measured.length) {
+        s += `<text x="${(x0 + x1) / 2}" y="${(y0 + y1) / 2}" class="svg-label">Noch keine Messpunkte übernommen</text>`;
+      }
+      s += '</svg>';
+      hostB.innerHTML = s;
+
+      if (reg) {
+        const eq = mode === 'E'
+          ? `E = ${C.fmtNum(reg.intercept, 3)} V + ${C.fmtNum(reg.slope, 3)} V · lg c`
+          : `U = ${C.fmtNum(reg.intercept, 3)} V + ${C.fmtNum(reg.slope, 3)} V · (−lg c)`;
+        summaryEl.innerHTML = `<strong>Ausgleichsgerade (n = ${reg.n}):</strong> ${esc(eq)} &nbsp;|&nbsp; R² = ${esc(C.fmtNum(reg.r2, 4))}`;
+      } else {
+        summaryEl.textContent = 'Miss mindestens zwei Konzentrationen, um die Ausgleichsgerade zu bestimmen.';
+      }
+    }
+  }
+
+  function clearInvalid(el) {
+    if (el) {
+      el.removeAttribute('aria-invalid');
+      el.classList.remove('gap-ok', 'gap-bad');
+    }
+  }
+
+  function markValidity(el, ok) {
+    if (!el) return;
+    if (ok) el.removeAttribute('aria-invalid');
+    else el.setAttribute('aria-invalid', 'true');
+    el.classList.toggle('gap-ok', ok);
+    el.classList.toggle('gap-bad', !ok);
+  }
+
+  function checkNernstQual() {
+    const q = state.nernst.qualitative;
+    const ok1 = q.q1 === 'prod';
+    const ok2 = q.q2 === 'mehr';
+    const ok3 = q.q3 === 'anode';
+    markValidity($('#nernst-q1'), ok1);
+    markValidity($('#nernst-q2'), ok2);
+    markValidity($('#nernst-q3'), ok3);
+    const all = ok1 && ok2 && ok3;
+    state.nernst.qualOk = all;
+    if (all) {
+      setFeedback('nernst-qual', true, '✔ Richtig! Weniger Ag⁺-Ionen verschieben das Gleichgewicht auf die Produktseite (Le Chatelier): Mehr Elektronen bleiben im Silberblech zurück, sodass die verdünnte Halbzelle zur Anode (Minuspol) wird.');
+    } else {
+      setFeedback('nernst-qual', false, '✘ Prüfe die rot markierten Felder: Bei geringerer Ag⁺-Konzentration weicht Ag ⇌ Ag⁺ + e⁻ so aus, dass mehr Ag⁺-Ionen nachgebildet werden.');
+    }
+    save();
+    renderProgress();
+  }
+
+  function checkNernstDerive() {
+    const mEl = $('#nernst-slope-in');
+    const bEl = $('#nernst-intercept-in');
+    const sEl = $('#nernst-formula-sign');
+    const lEl = $('#nernst-formula-log');
+    const m = parseNum(state.nernst.slope);
+    const b = parseNum(state.nernst.intercept);
+    const mOk = m !== null && m >= 0.055 && m <= 0.063;
+    const bOk = b !== null && b >= 0.78 && b <= 0.82;
+    const sOk = state.nernst.formulaSign === '+';
+    const lOk = state.nernst.formulaLog === 'lgc';
+    markValidity(mEl, mOk);
+    markValidity(bEl, bOk);
+    markValidity(sEl, sOk);
+    markValidity(lEl, lOk);
+    const all = mOk && bOk && sOk && lOk;
+    state.nernst.deriveOk = all;
+    if (all) {
+      setFeedback('nernst-derive', true, '✔ Richtig hergeleitet! Die Geradensteigung beträgt rund 0,059 V pro Dekade, der Achsenabschnitt bei lg c = 0 (c = 1 mol/L) entspricht E° = +0,80 V. Daraus folgt E(Ag / Ag⁺) = E°(Ag / Ag⁺) + 0,059 V · lg c(Ag⁺).');
+    } else {
+      const hints = [];
+      if (!mOk) hints.push('Steigung m ≈ 0,059 V (Spannungsänderung pro 1:10-Verdünnungsschritt)');
+      if (!bOk) hints.push('Achsenabschnitt b ≈ 0,80 V (Standardpotenzial bei c = 1 mol/L)');
+      if (!sOk) hints.push('Vorzeichen: Da lg c für c < 1 mol/L negativ ist, steht vor 0,059 V · lg c ein Pluszeichen');
+      if (!lOk) hints.push('Logarithmus-Term: In der halblogarithmischen Geraden ist x = lg c(Ag⁺)');
+      setFeedback('nernst-derive', false, '✘ Noch nicht ganz vollständig: ' + hints.join('; ') + '.');
+    }
+    save();
+    renderProgress();
+  }
+
+  function checkNernstExCu() {
+    const el = $('#nernst-ex-cu');
+    const v = parseNum(state.nernst.exCu);
+    const ok = v !== null && v >= 0.087 && v <= 0.091;
+    markValidity(el, ok);
+    state.nernst.exCuOk = ok;
+    if (ok) {
+      setFeedback('nernst-ex-cu', true, '✔ Richtig! Für Cu (z = 2) beträgt der Faktor 0,059 V / 2 = 0,0295 V. Bei c = 10⁻³ mol/L gilt ΔE = 3 · 0,0295 V = 0,0885 V ≈ 0,089 V.');
+    } else {
+      setFeedback('nernst-ex-cu', false, '✘ Prüfe deine Rechnung: Bei Kupfer (Cu ⇌ Cu²⁺ + 2 e⁻) ist z = 2. Teile 0,059 V durch z = 2 und multipliziere mit |lg(0,001)| = 3.');
+    }
+    save();
+    renderProgress();
+  }
+
+  function parseSciOrNum(raw) {
+    const s = String(raw || '').trim()
+      .replace(/\s+/g, '')
+      .replace(/,/g, '.')
+      .replace(/−/g, '-')
+      .replace(/mol\/l/gi, '');
+    if (!s) return null;
+    const powMatch = s.match(/^(?:1(?:\.0+)?[*·×])?10\^?\(?([+-]?\d+(?:\.\d+)?)\)?$/i);
+    if (powMatch) return Math.pow(10, Number(powMatch[1]));
+    const supMap = { '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9', '⁻': '-', '⁺': '+' };
+    const converted = s.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺]/g, (ch) => supMap[ch] || ch);
+    const supPow = converted.match(/^(?:1(?:\.0+)?[*·×])?10([+-]?\d+)$/);
+    if (supPow) return Math.pow(10, Number(supPow[1]));
+    const num = Number(converted);
+    return Number.isFinite(num) ? num : null;
+  }
+
+  function checkNernstExUnknown() {
+    const el = $('#nernst-ex-unknown');
+    const v = parseSciOrNum(state.nernst.exUnknown);
+    const isExp = v !== null && Math.abs(v - (-5)) <= 0.15;
+    const isConc = v !== null && v > 0 && Math.abs(Math.log10(v) - (-5)) <= 0.15;
+    const ok = isExp || isConc;
+    markValidity(el, ok);
+    state.nernst.exUnknownOk = ok;
+    if (ok) {
+      setFeedback('nernst-ex-unknown', true, '✔ Richtig! Aus U = −0,059 V · lg c(Ag⁺) folgt lg c = −0,295 V / 0,059 V = −5, also c(Ag⁺) = 10⁻⁵ mol/L = 0,00001 mol/L.');
+    } else if (v !== null && Math.abs(v - 5) <= 0.15) {
+      setFeedback('nernst-ex-unknown', false, '✘ Achte auf das Vorzeichen des Exponenten: Die Lösung ist stark verdünnt, daher ist x = lg c negativ (x = −5, nicht +5).');
+    } else {
+      setFeedback('nernst-ex-unknown', false, '✘ Prüfe den Ansatz: U = 0,295 V = −0,059 V · lg c(Ag⁺). Teile 0,295 V durch 0,059 V und beachte das Minuszeichen.');
+    }
+    save();
+    renderProgress();
+  }
+
+  function syncNernstControls() {
+    const n = state.nernst;
+    const radC = $(`input[name="nernst-c"][value="${nernstKey(n.selectedC)}"]`);
+    if (radC) radC.checked = true;
+    const radM = $(`input[name="nernst-chart-mode"][value="${n.chartMode}"]`);
+    if (radM) radM.checked = true;
+    $('#nernst-show-fit').checked = !!n.showFit;
+    $('#nernst-show-cu').checked = !!n.showCuCompare;
+    $('#nernst-q1').value = n.qualitative.q1 || '';
+    $('#nernst-q2').value = n.qualitative.q2 || '';
+    $('#nernst-q3').value = n.qualitative.q3 || '';
+    $('#nernst-slope-in').value = n.slope || '';
+    $('#nernst-intercept-in').value = n.intercept || '';
+    $('#nernst-formula-sign').value = n.formulaSign || '';
+    $('#nernst-formula-log').value = n.formulaLog || '';
+    $('#nernst-ex-cu').value = n.exCu || '';
+    $('#nernst-ex-unknown').value = n.exUnknown || '';
+  }
+
+  function initNernst() {
+    syncNernstControls();
+    renderNernstApparatus();
+    renderNernstTable();
+    renderNernstCharts();
+
+    $$('input[name="nernst-c"]').forEach((r) => r.addEventListener('change', () => {
+      state.nernst.selectedC = Number(r.value);
+      save();
+      renderNernstApparatus();
+      renderNernstTable();
+      renderNernstCharts();
+    }));
+
+    $('#nernst-record').addEventListener('click', () => recordNernstPoint(state.nernst.selectedC));
+    $('#nernst-record-all').addEventListener('click', () => {
+      for (const c of C.NERNST_SERIES) {
+        const pt = C.concentrationCellPoint('Ag', c, 1);
+        state.nernst.measured[nernstKey(c)] = { c: pt.c, logC: pt.logC, U: pt.U, E: pt.E };
+      }
+      save();
+      renderNernstApparatus();
+      renderNernstTable();
+      renderNernstCharts();
+      renderProgress();
+      $('#nernst-status').textContent = '✔ Alle 5 Messpunkte der Silber-Konzentrationszelle wurden in die Tabelle übernommen.';
+    });
+
+    $('#nernst-open-lab').addEventListener('click', () => openInMainLab('Ag', state.nernst.selectedC, 1));
+    $('#nernst-open-cu-lab').addEventListener('click', () => openInMainLab('Cu', 0.001, 1));
+
+    $$('input[name="nernst-chart-mode"]').forEach((r) => r.addEventListener('change', () => {
+      state.nernst.chartMode = r.value;
+      if (r.value === 'E' && state.nernst.showCuCompare) {
+        state.nernst.showCuCompare = false;
+        $('#nernst-show-cu').checked = false;
+      }
+      save();
+      renderNernstCharts();
+    }));
+    $('#nernst-show-fit').addEventListener('change', (e) => {
+      state.nernst.showFit = e.target.checked;
+      save();
+      renderNernstCharts();
+    });
+    $('#nernst-show-cu').addEventListener('change', (e) => {
+      state.nernst.showCuCompare = e.target.checked;
+      if (e.target.checked && state.nernst.chartMode !== 'U') {
+        state.nernst.chartMode = 'U';
+        const radU = $('input[name="nernst-chart-mode"][value="U"]');
+        if (radU) radU.checked = true;
+      }
+      save();
+      renderNernstCharts();
+    });
+
+    $$('select[data-nernst-qual]').forEach((s) => s.addEventListener('change', () => {
+      state.nernst.qualitative[s.dataset.nernstQual] = s.value;
+      state.nernst.qualOk = false;
+      clearInvalid(s);
+      save();
+    }));
+
+    const bindDerive = (sel, key, evt) => {
+      const el = $(sel);
+      el.addEventListener(evt, () => {
+        state.nernst[key] = el.value;
+        state.nernst.deriveOk = false;
+        clearInvalid(el);
+        save();
+      });
+    };
+    bindDerive('#nernst-slope-in', 'slope', 'input');
+    bindDerive('#nernst-intercept-in', 'intercept', 'input');
+    bindDerive('#nernst-formula-sign', 'formulaSign', 'change');
+    bindDerive('#nernst-formula-log', 'formulaLog', 'change');
+
+    $('#nernst-ex-cu').addEventListener('input', (e) => {
+      state.nernst.exCu = e.target.value;
+      state.nernst.exCuOk = false;
+      clearInvalid(e.target);
+      save();
+    });
+    $('#nernst-ex-unknown').addEventListener('input', (e) => {
+      state.nernst.exUnknown = e.target.value;
+      state.nernst.exUnknownOk = false;
+      clearInvalid(e.target);
+      save();
+    });
+
+    $$('form[data-check-form]').forEach((form) => {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const k = form.dataset.checkForm;
+        if (k === 'nernst-qual') checkNernstQual();
+        else if (k === 'nernst-derive') checkNernstDerive();
+        else if (k === 'nernst-ex-cu') checkNernstExCu();
+        else if (k === 'nernst-ex-unknown') checkNernstExUnknown();
+      });
+    });
+
+    if (state.nernst.qualOk) checkNernstQual();
+    if (state.nernst.deriveOk) checkNernstDerive();
+    if (state.nernst.exCuOk) checkNernstExCu();
+    if (state.nernst.exUnknownOk) checkNernstExUnknown();
+  }
+
+  /* =====================================================================
      FORTSCHRITT, DRUCK, RESET
      ===================================================================== */
   function renderProgress() {
@@ -880,6 +1495,8 @@
     const items = combos.map((c) => galleryCorrect(c.key));
     items.push(state.tasks.orderOk, state.tasks.additivOk, state.tasks.sentencesOk, state.tasks.matchOk);
     items.push(C.ORDER.every((id) => state.dl[id] !== undefined));
+    const nernstDone = C.NERNST_SERIES.every((c) => !!state.nernst.measured[nernstKey(c)]);
+    items.push(nernstDone, state.nernst.qualOk, state.nernst.deriveOk, state.nernst.exCuOk, state.nernst.exUnknownOk);
     const done = items.filter(Boolean).length;
     $('#progress-text').textContent = done + ' / ' + items.length + ' erledigt';
     const bar = $('#progress-bar');
@@ -899,8 +1516,14 @@
       renderTasks();
       renderMatch();
       renderDlCompare();
+      syncNernstControls();
+      renderNernstApparatus();
+      renderNernstTable();
+      renderNernstCharts();
+      $('#nernst-status').textContent = 'Wähle eine Konzentration und übernimm den Messwert in die Tabelle.';
+      ['#nernst-q1', '#nernst-q2', '#nernst-q3', '#nernst-slope-in', '#nernst-intercept-in', '#nernst-formula-sign', '#nernst-formula-log', '#nernst-ex-cu', '#nernst-ex-unknown'].forEach((s) => clearInvalid($(s)));
       renderProgress();
-      ['order', 'additiv', 'sentences', 'match'].forEach((id) => setFeedback(id, null, ''));
+      ['order', 'additiv', 'sentences', 'match', 'nernst-qual', 'nernst-derive', 'nernst-ex-cu', 'nernst-ex-unknown'].forEach((id) => setFeedback(id, null, ''));
     });
     document.addEventListener('click', (e) => {
       const b = e.target.closest('[data-check]');
@@ -927,6 +1550,7 @@
     renderGallery();
     renderTasks();
     renderMatch();
+    initNernst();
     renderProgress();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

@@ -40,7 +40,13 @@ Dieses interaktive HTML5-Portal ermöglicht Schülerinnen und Schülern das voll
    - **Aufgabe 2:** Additivität der Zellspannungen rechnerisch überprüfen ($\Delta E(\text{Zn/Cu}) + \Delta E(\text{Cu/Ag}) \approx \Delta E(\text{Zn/Ag})$).
    - **Aufgabe 3:** Formulierungshilfe mit interaktiven Satzbausteinen aus der Fachsprachen-Box.
    - **Aufgabe 4:** Reflexionsaufgabe zur Erklärung der Zellspannung über Doppelschichten mit Musterlösung.
-   - **Fachbegriffe-Matching:** 13 Kernbegriffe aus der Fachsprachen-Box mit Sofortrückmeldung.
+   - **Fachbegriffe-Matching:** 15 Kernbegriffe aus der Fachsprachen-Box mit Sofortrückmeldung.
+
+7. **Ableitung der Nernst-Gleichung (Silber-Konzentrationszelle):**
+   - **5-stufige Verdünnungsreihe** ($\text{Ag} \mid \text{AgNO}_3\ (c) \parallel \text{AgNO}_3\ (1\,\text{mol/L}) \mid \text{Ag}$ mit $c = 1 \dots 0{,}0001\,\text{mol/L}$) samt $\text{KNO}_3$-Salzbrücke und 1-mV-genauer Spannungsanzeige.
+   - **Lineare vs. halblogarithmische Auswertung:** Direktes Diagramm $E$ gegen $c$ im Vergleich zu $E$ gegen $\lg c$ bzw. $U$ gegen $-\lg c$ mit live berechneter OLS-Ausgleichsgerade, Steigungsdreieck ($\approx +0{,}059\,\text{V/Dekade}$) und optionaler Vergleichsgerade für Kupfer ($z = 2$).
+   - **Qualitative & mathematische Herleitung:** Prinzip von Le Chatelier, Geradenparameter ($m \approx 0{,}059\,\text{V}$, $b \approx 0{,}80\,\text{V}$), Verallgemeinerung auf $z > 1$, thermodynamischer Hintergrund ($R T / F \cdot \ln 10$) sowie zwei Rechenaufgaben mit sofortiger Rückmeldung.
+   - **Verknüpfung zum Hauptlabor:** Direktes Öffnen der Silber- oder Kupfer-Konzentrationszelle im Hauptlabor mit konzentrationsabhängiger Ionendichte auf der Teilchenebene.
 
 ---
 

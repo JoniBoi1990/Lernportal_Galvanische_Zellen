@@ -305,6 +305,15 @@
       if (!this.running) this.draw();
     }
 
+    ionCountForC(c) {
+      const val = Number(c);
+      if (val >= 0.9) return 20;
+      if (val >= 0.09) return 12;
+      if (val >= 0.009) return 7;
+      if (val >= 0.0009) return 4;
+      return 2;
+    }
+
     /* ----- Szenenaufbau ----- */
     rebuild() {
       const cfg = this.cfg;
@@ -323,7 +332,8 @@
         }
         if (hc.electrolyte) {
           const pair = P[hc.electrolyte];
-          for (let i = 0; i < 12; i++) {
+          const nFree = this.ionCountForC(hc.c);
+          for (let i = 0; i < nFree; i++) {
             const pt = this.randomSolutionPoint(side);
             this.particles.push({ kind: 'cation', el: pair.id, side, x: pt.x, y: pt.y, state: 'free' });
             const pa = this.randomSolutionPoint(side);

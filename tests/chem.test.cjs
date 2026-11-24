@@ -88,4 +88,81 @@ test('Zahlenformat deutsch mit echtem Minuszeichen', () => {
   assert.equal(C.fmtSigned(0.8), '+0,80');
   assert.equal(C.fmtNum(-0.001, 2), '0,00');
   assert.equal(C.fmtC(0.1), '0,1');
+  assert.equal(C.fmtC(0.0001), '0,0001');
+  assert.equal(C.fmtC(1e-5), '0,00001');
+});
+
+test('NERNST_SERIES und fmtSci formatieren 5 Dekaden sauber', () => {
+  assert.deepEqual(C.NERNST_SERIES, [1, 0.1, 0.01, 0.001, 0.0001]);
+  assert.deepEqual(C.NERNST_SERIES.map(C.fmtSci), ['10⁰', '10⁻¹', '10⁻²', '10⁻³', '10⁻⁴']);
+  assert.equal(C.fmtSci(1e-5), '10⁻⁵');
+});
+
+test('Nernst-Potenziale für Silber über alle 5 Konzentrationsstufen', () => {
+  const expected = [0.800, 0.741, 0.682, 0.623, 0.564];
+  C.NERNST_SERIES.forEach((c, idx) => {
+    near(C.potential('Ag', c), expected[idx], 1e-6);
+  });
+});
+
+test('measuredDeltaE für Silber-Konzentrationszellen liefert 1-mV-Auflösung und Symmetrie', () => {
+  assert.equal(C.measuredDeltaE(hc('Ag', 'Ag', 1), hc('Ag', 'Ag', 1)), 0);
+  for (const c of C.NERNST_SERIES) {
+    const theo = Math.abs(C.potential('Ag', 1) - C.potential('Ag', c));
+    const u1 = C.measuredDeltaE(hc('Ag', 'Ag', c), hc('Ag', 'Ag', 1));
+    const u2 = C.measuredDeltaE(hc('Ag', 'Ag', 1), hc('Ag', 'Ag', c));
+    assert.equal(u1, u2, 'symmetrisch');
+    assert.ok(Math.abs(u1 - theo) <= 0.002, `c=${c}: ${u1} vs ${theo}`);
+    assert.equal(Math.round(u1 * 1000), u1 * 1000, '3 Nachkommastellen');
+  }
+});
+
+test('concentrationCellPoint liefert konsistente Daten für alle 5 Stufen', () => {
+  for (const c of C.NERNST_SERIES) {
+    const pt = C.concentrationCellPoint('Ag', c, 1);
+    assert.equal(pt.metal, 'Ag');
+    assert.equal(pt.z, 1);
+    assert.equal(pt.E0, 0.8);
+    assert.equal(pt.anodeSide, c < 1 ? 'test' : null);
+    near(pt.E, pt.E0 - pt.U, 1e-9);
+    near(pt.logC, Math.log10(c), 1e-9);
+  }
+});
+
+test('linearRegression für exakte Gerade, Silber, Kupfer und Randfälle', () => {
+  const exact = C.linearRegression([{ x: 0, y: 3 }, { x: 1, y: 5 }, { x: 2, y: 7 }]);
+  near(exact.slope, 2, 1e-9);
+  near(exact.intercept, 3, 1e-9);
+  near(exact.r2, 1, 1e-9);
+  assert.equal(exact.n, 3);
+
+  const agPts = C.NERNST_SERIES.map((c) => {
+    const pt = C.concentrationCellPoint('Ag', c, 1);
+    return { x: pt.logC, y: pt.E };
+  });
+  const agFit = C.linearRegression(agPts);
+  assert.ok(agFit.slope >= 0.058 && agFit.slope <= 0.060, `Ag Steigung ${agFit.slope}`);
+  assert.ok(agFit.intercept >= 0.798 && agFit.intercept <= 0.802, `Ag Achsenabschnitt ${agFit.intercept}`);
+  assert.ok(agFit.r2 > 0.999, `Ag R² ${agFit.r2}`);
+
+  const cuPts = C.NERNST_SERIES.map((c) => {
+    const pt = C.concentrationCellPoint('Cu', c, 1);
+    return { x: pt.logC, y: pt.E };
+  });
+  const cuFit = C.linearRegression(cuPts);
+  assert.ok(cuFit.slope >= 0.0285 && cuFit.slope <= 0.0305, `Cu Steigung ${cuFit.slope}`);
+
+  assert.equal(C.linearRegression([]), null);
+  assert.equal(C.linearRegression([{ x: 1, y: 2 }]), null);
+  assert.equal(C.linearRegression([{ x: 1, y: 2 }, { x: 1, y: 5 }]), null);
+});
+
+test('concentrationFromVoltage kehrt Nernst-Gleichung für unbekannte Lösung um', () => {
+  const res = C.concentrationFromVoltage('Ag', 0.295, 1);
+  near(res.logC, -5, 1e-9);
+  near(res.c, 1e-5, 1e-12);
+});
+
+test('overall für Konzentrationszelle formatiert Konzentrationsausgleich', () => {
+  assert.equal(C.overall('Ag', 'Ag', 0.001, 1), 'Ag⁺ (c = 1 mol/L) → Ag⁺ (c = 0,001 mol/L)');
 });

@@ -10,6 +10,9 @@
 
   /** Nernst-Faktor bei 25 °C in V (RT/F · ln10) */
   const NERNST = 0.059;
+  const R_GAS = 8.314462618;
+  const F_CONST = 96485.33212;
+  const T_STD = 298.15;
 
   /** Konjugierte Redoxpaare der Versuchsanleitung (Standardpotenziale nach Schulbuch-Tabellen) */
   const PAIRS = {
@@ -41,10 +44,16 @@
 
   /** Reihenfolge von unedel nach edel */
   const ORDER = ['Zn', 'Fe', 'Cu', 'Ag'];
-  const CONCENTRATIONS = [1, 0.1, 0.01, 0.001];
+  const CONCENTRATIONS = [1, 0.1, 0.01, 0.001, 0.0001];
+  const NERNST_SERIES = [1, 0.1, 0.01, 0.001, 0.0001];
   const DEFAULT_C = 0.1;
 
   /* ---------- Formatierung ---------- */
+  const SUP_DIGITS = ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹'];
+  function toSuperscriptInt(n) {
+    const sign = n < 0 ? '⁻' : '';
+    return sign + String(Math.abs(n)).split('').map((d) => SUP_DIGITS[Number(d)]).join('');
+  }
   function fmtNum(x, digits) {
     const d = digits === undefined ? 2 : digits;
     const s = Math.abs(x).toFixed(d).replace('.', ',');
@@ -55,7 +64,25 @@
     return x > 0 && Number(Math.abs(x).toFixed(digits === undefined ? 2 : digits)) !== 0 ? '+' + s : s;
   }
   function fmtC(c) {
+    const num = Number(c);
+    if (Number.isFinite(num) && num > 0 && num < 1) {
+      const exp = -Math.log10(num);
+      const rounded = Math.round(exp);
+      if (Math.abs(exp - rounded) < 1e-9 && rounded >= 1) {
+        return num.toFixed(rounded).replace('.', ',');
+      }
+    }
     return String(c).replace('.', ',');
+  }
+  function fmtSci(c) {
+    const num = Number(c);
+    if (!Number.isFinite(num) || num <= 0) return fmtC(c);
+    const exp = Math.log10(num);
+    const rounded = Math.round(exp);
+    if (Math.abs(exp - rounded) < 1e-9) {
+      return '10' + toSuperscriptInt(rounded);
+    }
+    return fmtC(c);
   }
 
   /* ---------- Potenziale ---------- */
@@ -204,12 +231,85 @@
     return (u - 0.5) * 0.03;
   }
 
-  /** Realistischer Messwert (Betrag) einer Zelle in V, auf 2 Nachkommastellen */
+  /** Realistischer Messwert (Betrag) einer Zelle in V */
   function measuredDeltaE(a, b) {
     const d = Math.abs(potential(a.metal, a.c) - potential(b.metal, b.c));
     if (d < 1e-9) return 0;
+    if (a.metal === b.metal) {
+      const v = d + measurementOffset(comboKey(a, b)) * 0.1;
+      return Math.round(Math.max(0, v) * 1000) / 1000;
+    }
     const v = d + measurementOffset(comboKey(a, b));
     return Math.round(Math.max(0, v) * 100) / 100;
+  }
+
+  /* ---------- Konzentrationszelle & Nernst-Auswertung ---------- */
+  /** Mess- und Theoriedaten für einen Punkt einer Konzentrationszelle gegenüber Bezugshalbzelle cRef */
+  function concentrationCellPoint(metalId, cTest, cRef) {
+    const p = PAIRS[metalId];
+    if (!p) throw new Error('Unbekanntes Redoxpaar: ' + metalId);
+    const ref = cRef === undefined ? 1 : Number(cRef);
+    const test = Number(cTest);
+    if (!(test > 0) || !(ref > 0)) throw new Error('Konzentration muss positiv sein');
+    const theoE = potential(metalId, test);
+    const theoRef = potential(metalId, ref);
+    const theoDeltaE = Math.abs(theoRef - theoE);
+    const U = measuredDeltaE({ metal: metalId, c: test }, { metal: metalId, c: ref });
+    const E = Math.round((theoRef + (test < ref ? -U : test > ref ? U : 0)) * 1000) / 1000;
+    return {
+      metal: metalId,
+      z: p.z,
+      E0: p.E0,
+      c: test,
+      cRef: ref,
+      logC: Math.log10(test),
+      negLogRatio: Math.log10(ref / test),
+      theoE,
+      theoDeltaE,
+      U,
+      E,
+      anodeSide: test < ref ? 'test' : test > ref ? 'ref' : null,
+    };
+  }
+
+  /** Lineare Regression (OLS) für { x, y }-Punkte */
+  function linearRegression(points) {
+    if (!Array.isArray(points) || points.length < 2) return null;
+    const n = points.length;
+    let sx = 0;
+    let sy = 0;
+    for (const pt of points) {
+      if (!pt || !Number.isFinite(pt.x) || !Number.isFinite(pt.y)) return null;
+      sx += pt.x;
+      sy += pt.y;
+    }
+    const mx = sx / n;
+    const my = sy / n;
+    let sxx = 0;
+    let sxy = 0;
+    let syy = 0;
+    for (const pt of points) {
+      const dx = pt.x - mx;
+      const dy = pt.y - my;
+      sxx += dx * dx;
+      sxy += dx * dy;
+      syy += dy * dy;
+    }
+    if (sxx < 1e-12) return null;
+    const slope = sxy / sxx;
+    const intercept = my - slope * mx;
+    const r2 = syy < 1e-12 ? 1 : Math.min(1, Math.max(0, (sxy * sxy) / (sxx * syy)));
+    return { slope, intercept, r2, n };
+  }
+
+  /** Berechnet unbekannte Konzentration einer verdünnten Messhalbzelle aus der Zellspannung U */
+  function concentrationFromVoltage(metalId, U, cRef) {
+    const p = PAIRS[metalId];
+    if (!p) throw new Error('Unbekanntes Redoxpaar: ' + metalId);
+    const ref = cRef === undefined ? 1 : Number(cRef);
+    if (!(ref > 0)) throw new Error('Referenzkonzentration muss positiv sein');
+    const logC = Math.log10(ref) - (p.z * Number(U)) / NERNST;
+    return { logC, c: Math.pow(10, logC) };
   }
 
   /** Die sechs Pflichtkombinationen der Versuchsanleitung (0,1 mol/L) */
@@ -249,11 +349,12 @@
   }
 
   return {
-    NERNST, PAIRS, ORDER, CONCENTRATIONS, DEFAULT_C, R_INTERNAL, R_MOTOR,
-    fmtNum, fmtSigned, fmtC,
+    NERNST, R_GAS, F_CONST, T_STD, PAIRS, ORDER, CONCENTRATIONS, NERNST_SERIES, DEFAULT_C, R_INTERNAL, R_MOTOR,
+    fmtNum, fmtSigned, fmtC, fmtSci,
     potential, isComplete, isConjugate, mismatchInfo, analyzeCell,
     oxidation, reduction, redoxPair, overall, electronsTransferred, cellDiagram, lcm,
     comboKey, measurementOffset, measuredDeltaE, coreCombos,
+    concentrationCellPoint, linearRegression, concentrationFromVoltage,
     doubleLayerCharge, doubleLayerRates,
   };
 });

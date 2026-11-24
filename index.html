@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Virtuelles Labor: Galvanische Zellen – Chemie KS LF | Schule Birklehof</title>
-  <meta name="description" content="Interaktives virtuelles Labor zum Bau und zur Spannungsmessung galvanischer Zellen aus den Halbzellen Ag/AgNO₃, Cu/CuSO₄, Fe/FeSO₄ und Zn/ZnSO₄ – mit Teilchenebene und Bildung der elektrochemischen Doppelschicht.">
+  <meta name="description" content="Interaktives virtuelles Labor zum Bau und zur Spannungsmessung galvanischer Zellen aus den Halbzellen Ag/AgNO₃, Cu/CuSO₄, Fe/FeSO₄ und Zn/ZnSO₄ – mit Teilchenebene, Doppelschicht-Labor und Herleitung der Nernst-Gleichung aus der Silber-Konzentrationszelle.">
   <link rel="stylesheet" href="style.css">
   <script src="chem.js" defer></script>
   <script src="particles.js" defer></script>
@@ -18,7 +18,7 @@
       <div class="header-title">
         <p class="kicker">Schule Birklehof · Chemie Kursstufe Leistungsfach · 3.4.7 Elektrochemie</p>
         <h1 id="main-heading" tabindex="-1">Virtuelles Labor: Galvanische Zellen</h1>
-        <p class="subtitle">Halbzellen bauen, Zellspannungen messen, Teilchenebene &amp; elektrochemische Doppelschicht verstehen</p>
+        <p class="subtitle">Halbzellen bauen, Zellspannungen messen, Teilchenebene, Doppelschicht &amp; Nernst-Gleichung verstehen</p>
       </div>
       <img src="assets/birklehof_logo.png" alt="Wappen der Schule Birklehof" class="logo-crest" width="44" height="60" fetchpriority="high">
     </div>
@@ -29,6 +29,7 @@
       <a href="#doppelschicht">Doppelschicht</a>
       <a href="#galerie">Versuchsgalerie</a>
       <a href="#auswertung">Auswertung</a>
+      <a href="#nernst">Nernst-Gleichung</a>
       <a href="#fachsprache">Fachsprachen-Box</a>
       <div class="progress" aria-live="polite">
         <span id="progress-text">0 / 0 erledigt</span>
@@ -66,6 +67,7 @@
             <li><strong>Teilchenebene:</strong> Beobachte, was an den Elektroden passiert. Schalte auf <em>Verbraucher (Motor)</em>, um Elektronen- und Ionenwanderung zu sehen, und blende die <em>Doppelschicht</em> ein.</li>
             <li><strong>Doppelschicht-Labor:</strong> Tauche ein einzelnes Metallblech ein und verfolge, wie sich das dynamische Gleichgewicht einstellt.</li>
             <li><strong>Galerie &amp; Auswertung:</strong> Übernimm deine Messwerte, bestimme Minus- und Pluspol, stelle die Redoxreihe auf und formuliere mit der Fachsprachen-Box.</li>
+            <li><strong>Nernst-Gleichung:</strong> Führe die Verdünnungsreihe an der Silber-Konzentrationszelle durch, werte die Messdaten halblogarithmisch aus und leite die Nernst-Gleichung ab.</li>
           </ol>
           <p class="muted">Alle Messwerte und Antworten werden lokal in deinem Browser gespeichert.</p>
         </div>
@@ -77,7 +79,7 @@
             <li><strong>(6)</strong> Zellspannungen galvanischer Zellen experimentell ermitteln</li>
             <li><strong>(7)</strong> die wesentlichen Prozesse darstellen (Elektrodenreaktionen, Anode, Kathode, Zellspannung)</li>
             <li><strong>(8)</strong> die Zellspannung mithilfe von Gleichgewichtsbetrachtungen an den elektrochemischen Doppelschichten erklären</li>
-            <li><strong>(11)</strong> Konzentrationsabhängigkeit (Nernst-Gleichung) – im Expertenmodus</li>
+            <li><strong>(11)</strong> Konzentrationsabhängigkeit erläutern und Nernst-Gleichung herleiten (Silber-Konzentrationszelle &amp; Expertenmodus)</li>
           </ul>
         </div>
       </div>
@@ -152,6 +154,7 @@
                       <option value="0.1" selected>0,1 mol/L</option>
                       <option value="0.01">0,01 mol/L</option>
                       <option value="0.001">0,001 mol/L</option>
+                      <option value="0.0001">0,0001 mol/L</option>
                     </select>
                   </label>
                 </fieldset>
@@ -181,6 +184,7 @@
                       <option value="0.1" selected>0,1 mol/L</option>
                       <option value="0.01">0,01 mol/L</option>
                       <option value="0.001">0,001 mol/L</option>
+                      <option value="0.0001">0,0001 mol/L</option>
                     </select>
                   </label>
                 </fieldset>
@@ -229,6 +233,7 @@
 
           <div class="options-row">
             <label class="switch-label"><input type="checkbox" switch id="expert-mode"> Expertenmodus: Konzentrationen variieren (Nernst)</label>
+            <a href="#nernst" class="small-link">→ Zur Herleitung der Nernst-Gleichung (Silber-Konzentrationszelle)</a>
           </div>
         </div>
       </div>
@@ -399,7 +404,304 @@
     </section>
 
     <!-- =============================================================
-         7. FACHSPRACHEN-BOX
+         7. NERNST-GLEICHUNG (SILBER-KONZENTRATIONSZELLE)
+         ============================================================= -->
+    <section id="nernst" class="card">
+      <h2>Nernst-Gleichung: Ableitung aus der Silber-Konzentrationszelle</h2>
+      <p><strong>Leitfrage:</strong> Wie hängt das Elektrodenpotenzial von der Ionenkonzentration ab? Verbindet man zwei Silber-Halbzellen unterschiedlicher Ag⁺-Konzentration über eine KNO₃-Salzbrücke, misst man auch bei gleichem Elektrodenmetall eine elektrische Spannung (<strong>Konzentrationszelle</strong>). Die rechte Bezugshalbzelle bleibt konstant bei <em>c₀</em>(Ag⁺) = 1 mol/L (Standardpotenzial <em>E°</em>(Ag / Ag⁺) = +0,80 V, <em>ϑ</em> = 25 °C), während links eine 1:10-Verdünnungsreihe untersucht wird:</p>
+      <p class="formula-inline">Ag | AgNO₃ (<em>c</em> variabel) ‖ AgNO₃ (<em>c₀</em> = 1 mol/L) | Ag</p>
+      <p class="small-note">Hinweis zur Durchführung: Als Salzbrücke wird KNO₃-Lösung eingesetzt – niemals KCl, da Cl⁻ mit Ag⁺ zu schwerlöslichem AgCl↓ ausfallen und die Konzentration verfälschen würde.</p>
+
+      <h3>1. Messreihe an der Silber-Konzentrationszelle</h3>
+      <div class="nernst-lab-grid">
+        <div class="apparatus-panel">
+          <div class="panel-header">
+            <h4>Versuchsaufbau (25 °C)</h4>
+            <span class="badge" id="nernst-badge">0 / 5 gemessen</span>
+          </div>
+          <div class="svg-stage nernst-stage" id="nernst-apparatus"></div>
+          <div class="readout-grid">
+            <div class="readout-box readout-main">
+              <span class="readout-label">Voltmeter-Anzeige (<em>U</em> = Δ<em>E</em>)</span>
+              <output class="readout-value" id="nernst-u" aria-live="polite">— V</output>
+            </div>
+            <div class="readout-box">
+              <span class="readout-label">Potenzial <em>E</em>(Ag / Ag⁺) = <em>E°</em> − <em>U</em></span>
+              <output class="readout-value" id="nernst-e" aria-live="polite">— V</output>
+            </div>
+            <div class="readout-box">
+              <span class="readout-label">Messhalbzelle (links)</span>
+              <output class="readout-value" id="nernst-role">—</output>
+            </div>
+          </div>
+        </div>
+
+        <div class="steps-panel nernst-controls">
+          <fieldset class="nernst-conc-choice">
+            <legend>Konzentration <em>c</em>(Ag⁺) in der Messhalbzelle (links)</legend>
+            <div class="nernst-radio-grid">
+              <div class="nernst-radio-item">
+                <input type="radio" id="nernst-c-1" name="nernst-c" value="1">
+                <label for="nernst-c-1">1 mol/L (10⁰)</label>
+              </div>
+              <div class="nernst-radio-item">
+                <input type="radio" id="nernst-c-0_1" name="nernst-c" value="0.1" checked>
+                <label for="nernst-c-0_1">0,1 mol/L (10⁻¹)</label>
+              </div>
+              <div class="nernst-radio-item">
+                <input type="radio" id="nernst-c-0_01" name="nernst-c" value="0.01">
+                <label for="nernst-c-0_01">0,01 mol/L (10⁻²)</label>
+              </div>
+              <div class="nernst-radio-item">
+                <input type="radio" id="nernst-c-0_001" name="nernst-c" value="0.001">
+                <label for="nernst-c-0_001">0,001 mol/L (10⁻³)</label>
+              </div>
+              <div class="nernst-radio-item">
+                <input type="radio" id="nernst-c-0_0001" name="nernst-c" value="0.0001">
+                <label for="nernst-c-0_0001">0,0001 mol/L (10⁻⁴)</label>
+              </div>
+            </div>
+          </fieldset>
+          <div class="btn-row">
+            <button type="button" class="btn" id="nernst-record">Messpunkt in Tabelle übernehmen</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="nernst-record-all">Alle 5 Messpunkte messen</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="nernst-open-lab">Im Hauptlabor öffnen (Teilchenebene)</button>
+          </div>
+          <p class="status-box" id="nernst-status" aria-live="polite">Wähle eine Konzentration und übernimm den Messwert in die Tabelle.</p>
+        </div>
+      </div>
+
+      <div tabindex="0" role="region" aria-labelledby="nernst-table-caption" class="table-wrap nernst-table-wrap">
+        <table class="gallery-table nernst-table">
+          <caption id="nernst-table-caption">Messreihe der Silber-Konzentrationszelle bei 25 °C (Bezugshalbzelle <em>c₀</em> = 1 mol/L, <em>E°</em> = +0,80 V)</caption>
+          <thead>
+            <tr>
+              <th scope="col"><em>c</em>(Ag⁺) in mol/L</th>
+              <th scope="col">lg(<em>c</em> / (mol/L))</th>
+              <th scope="col">Spannung <em>U</em> = Δ<em>E</em> in V</th>
+              <th scope="col">Potenzial <em>E</em>(Ag / Ag⁺) = <em>E°</em> − <em>U</em> in V</th>
+              <th scope="col">Δ<em>U</em> pro Dekade</th>
+              <th scope="col">Aktion</th>
+            </tr>
+          </thead>
+          <tbody id="nernst-table-body"></tbody>
+        </table>
+      </div>
+
+      <h3>2. Grafische Auswertung &amp; Linearisierung</h3>
+      <div class="nernst-chart-toolbar">
+        <fieldset class="nernst-mode-choice">
+          <legend>Auftragung in Diagramm B</legend>
+          <div class="nernst-mode-options">
+            <div class="nernst-radio-inline">
+              <input type="radio" id="nernst-mode-e" name="nernst-chart-mode" value="E" checked>
+              <label for="nernst-mode-e"><em>E</em>(Ag / Ag⁺) gegen lg <em>c</em></label>
+            </div>
+            <div class="nernst-radio-inline">
+              <input type="radio" id="nernst-mode-u" name="nernst-chart-mode" value="U">
+              <label for="nernst-mode-u"><em>U</em> = Δ<em>E</em> gegen −lg <em>c</em></label>
+            </div>
+          </div>
+        </fieldset>
+        <div class="nernst-chart-switches">
+          <span class="switch-inline-wrap">
+            <input type="checkbox" switch id="nernst-show-fit" checked>
+            <label for="nernst-show-fit" class="switch-label">Ausgleichsgerade &amp; Steigungsdreieck anzeigen</label>
+          </span>
+          <span class="switch-inline-wrap">
+            <input type="checkbox" switch id="nernst-show-cu">
+            <label for="nernst-show-cu" class="switch-label">Kupfer (<em>z</em> = 2) zum Vergleich einblenden</label>
+          </span>
+        </div>
+      </div>
+
+      <div class="nernst-charts-grid">
+        <figure class="nernst-figure">
+          <figcaption class="figure-title">Diagramm A: <em>E</em>(Ag / Ag⁺) gegen lineare Konzentration <em>c</em></figcaption>
+          <div id="nernst-chart-linear" class="nernst-chart-stage"></div>
+          <p class="small-note">Bei linearer Auftragung gegen <em>c</em> liegt keine Gerade vor: Jeder 1:10-Verdünnungsschritt erniedrigt <em>E</em> um etwa 59 mV. Exakte Zahlenwerte stehen in der Messwerttabelle.</p>
+        </figure>
+        <figure class="nernst-figure">
+          <figcaption class="figure-title" id="nernst-chart-b-title">Diagramm B: Halblogarithmische Auftragung <em>E</em> gegen lg <em>c</em></figcaption>
+          <div id="nernst-chart-log" class="nernst-chart-stage"></div>
+          <div class="nernst-reg-summary" id="nernst-reg-summary" aria-live="polite">Miss mindestens zwei Konzentrationen, um die Ausgleichsgerade zu bestimmen.</div>
+          <p class="small-note" id="nernst-chart-b-cap">Durch die Auftragung gegen lg(<em>c</em> / (mol/L)) entsteht eine Gerade der Form <em>E</em> = <em>b</em> + <em>m</em> · lg <em>c</em>.</p>
+        </figure>
+      </div>
+
+      <h3>3. Ableitung der Nernst-Gleichung</h3>
+      <article class="task-card" id="task-nernst-qual">
+        <h4>3a) Qualitative Begründung mit dem Prinzip von Le Chatelier</h4>
+        <form class="nernst-form" data-check-form="nernst-qual" novalidate>
+          <p class="sentence">
+            In einer Silber-Halbzelle stellt sich das Gleichgewicht Ag ⇌ Ag⁺ + e⁻ ein. Wird die Konzentration <em>c</em>(Ag⁺) durch Verdünnen verringert, weicht das System nach dem Prinzip von Le Chatelier auf die
+            <select id="nernst-q1" data-nernst-qual="q1" aria-label="Gleichgewichtsverschiebung bei Verdünnung">
+              <option value="">…</option>
+              <option value="prod">Produktseite (Auflösung von Ag-Atomen)</option>
+              <option value="edukt">Eduktseite (Abscheidung von Ag⁺-Ionen)</option>
+            </select>
+            aus. Dadurch verbleiben im Silberblech
+            <select id="nernst-q2" data-nernst-qual="q2" aria-label="Elektronenüberschuss im Silberblech">
+              <option value="">…</option>
+              <option value="mehr">mehr</option>
+              <option value="weniger">weniger</option>
+            </select>
+            Elektronen als in der 1 M-Bezugshalbzelle. Die verdünnte Halbzelle erhält das niedrigere (weniger positive) Potenzial und bildet daher die
+            <select id="nernst-q3" data-nernst-qual="q3" aria-label="Polung der verdünnten Halbzelle">
+              <option value="">…</option>
+              <option value="anode">Anode (Minuspol)</option>
+              <option value="kathode">Kathode (Pluspol)</option>
+            </select>.
+          </p>
+          <div class="btn-row"><button type="submit" class="btn btn-sm">Überprüfen</button></div>
+        </form>
+        <p class="feedback" id="fb-nernst-qual" aria-live="polite"></p>
+      </article>
+
+      <article class="task-card" id="task-nernst-derive">
+        <h4>3b) Mathematische Herleitung aus der Ausgleichsgeraden</h4>
+        <p>Da die Bezugshalbzelle (<em>c₀</em> = 1 mol/L, <em>E°</em> = +0,80 V) die Kathode bildet, gilt für die gemessene Zellspannung <em>U</em> = <em>E°</em>(Ag / Ag⁺) − <em>E</em>(Mess) und somit <strong><em>E</em>(Ag / Ag⁺) = <em>E°</em>(Ag / Ag⁺) − <em>U</em></strong>. In der halblogarithmischen Auftragung ergibt sich eine Gerade <em>y</em> = <em>m</em> · <em>x</em> + <em>b</em> mit <em>y</em> = <em>E</em>(Ag / Ag⁺) und <em>x</em> = lg(<em>c</em> / (mol/L)).</p>
+        <form class="nernst-form" data-check-form="nernst-derive" novalidate>
+          <div class="nernst-input-grid">
+            <div class="field-group">
+              <label for="nernst-slope-in">Steigung <em>m</em> der Ausgleichsgeraden (in V pro Dekade):</label>
+              <span id="nernst-slope-hint" class="field-hint">Dezimalzahl mit Komma, z. B. 0,059</span>
+              <div class="input-unit">
+                <input type="text" id="nernst-slope-in" inputmode="decimal" autocomplete="off" aria-describedby="nernst-slope-hint" size="8">
+                <span>V</span>
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="nernst-intercept-in">y-Achsenabschnitt <em>b</em> bei lg <em>c</em> = 0 (in V):</label>
+              <span id="nernst-intercept-hint" class="field-hint">Potenzial bei <em>c</em> = 1 mol/L, z. B. 0,80</span>
+              <div class="input-unit">
+                <input type="text" id="nernst-intercept-in" inputmode="decimal" autocomplete="off" aria-describedby="nernst-intercept-hint" size="8">
+                <span>V</span>
+              </div>
+            </div>
+          </div>
+          <p class="sentence">
+            Daraus folgt die Nernst-Gleichung für die Silber-Halbzelle bei 25 °C:
+            <strong><em>E</em>(Ag / Ag⁺) = <em>E°</em>(Ag / Ag⁺)</strong>
+            <select id="nernst-formula-sign" aria-label="Vorzeichen vor dem Konzentrationsterm">
+              <option value="">…</option>
+              <option value="+">+</option>
+              <option value="-">−</option>
+            </select>
+            <strong>0,059 V ·</strong>
+            <select id="nernst-formula-log" aria-label="Logarithmus-Term der Konzentration">
+              <option value="">…</option>
+              <option value="lgc">lg c(Ag⁺)</option>
+              <option value="c">c(Ag⁺)</option>
+              <option value="invc">1 / c(Ag⁺)</option>
+            </select>
+          </p>
+          <div class="btn-row"><button type="submit" class="btn btn-sm">Überprüfen</button></div>
+        </form>
+        <p class="feedback" id="fb-nernst-derive" aria-live="polite"></p>
+        <div class="nernst-formula-box" id="nernst-formula-summary">
+          <div class="formula-title">Hergeleitete Nernst-Gleichung für Silber (<em>z</em> = 1, <em>ϑ</em> = 25 °C)</div>
+          <div class="formula-main">
+            <em>E</em>(Ag / Ag⁺) = <em>E°</em>(Ag / Ag⁺) + 0,059 V · lg <em>c</em>(Ag⁺)
+          </div>
+          <p class="small-note">Hinweis: Da für <em>c</em> &lt; 1 mol/L gilt lg <em>c</em> &lt; 0, sinkt <em>E</em> bei Verdünnung mit dem Pluszeichen automatisch unter <em>E°</em> ab (z. B. bei <em>c</em> = 0,01 mol/L: lg 0,01 = −2 → <em>E</em> = 0,80 V − 0,118 V = +0,682 V).</p>
+        </div>
+      </article>
+
+      <h3>4. Verallgemeinerung auf mehrwertige Metalle (<em>z</em> &gt; 1) &amp; Vertiefung</h3>
+      <div class="nernst-general-box">
+        <p>Bei zweiwertigen Metallen (z. B. Cu ⇌ Cu²⁺ + <strong>2 e⁻</strong>, Zn ⇌ Zn²⁺ + 2 e⁻, Fe ⇌ Fe²⁺ + 2 e⁻) werden pro Metall-Ion <em>z</em> = 2 Elektronen übertragen. Die Abhängigkeit des Potenzials von der Konzentration ist deshalb nur <strong>halb so stark</strong> (Steigung 0,059 V / 2 = 0,0295 V pro Dekade).</p>
+        <div class="nernst-formula-box">
+          <div class="formula-title">Nernst-Gleichung für Metall-Halbzellen (<em>ϑ</em> = 25 °C)</div>
+          <div class="formula-main">
+            <em>E</em>(M / M<sup><em>z</em>+</sup>) = <em>E°</em>(M / M<sup><em>z</em>+</sup>) +
+            <span class="frac" aria-label="0,059 Volt geteilt durch z"><span class="frac-num">0,059 V</span><span class="frac-den"><em>z</em></span></span>
+            · lg <em>c</em>(M<sup><em>z</em>+</sup>)
+          </div>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-secondary btn-sm" id="nernst-open-cu-lab">Kupfer-Konzentrationszelle (0,001 M | 1 M) im Hauptlabor testen</button>
+        </div>
+      </div>
+
+      <div class="nernst-accordion">
+        <details>
+          <summary>Woher stammt der Faktor 0,059 V? (Thermodynamischer Hintergrund)</summary>
+          <div class="acc-body">
+            <p>Aus der Thermodynamik (Zusammenhang zwischen freier Reaktionsenthalpie Δ<sub>R</sub><em>G</em> und Zellspannung) folgt als Vorfaktor des natürlichen Logarithmus der Term <em>R · T / (z · F)</em>. Rechnet man in den dekadischen Logarithmus (lg) um (Faktor ln 10 ≈ 2,3026), erhält man bei Standardtemperatur <em>T</em> = 298,15 K (25 °C):</p>
+            <p class="formula-inline"><em>R · T / F</em> · ln 10 = (8,3145 J/(mol·K) · 298,15 K) / 96 485 C/mol · 2,3026 ≈ <strong>0,05916 V ≈ 0,059 V</strong></p>
+          </div>
+        </details>
+        <details>
+          <summary>Allgemeine Nernst-Gleichung für beliebige Redoxpaare &amp; Aktivität von Feststoffen</summary>
+          <div class="acc-body">
+            <p>Für ein allgemeines Redoxpaar <em>a</em> Red ⇌ <em>b</em> Ox + <em>z</em> e⁻ (z. B. Fe²⁺ ⇌ Fe³⁺ + e⁻ oder MnO₄⁻ + 8 H₃O⁺ + 5 e⁻ ⇌ Mn²⁺ + 12 H₂O) berücksichtigt man die Konzentrationen der oxidierten und reduzierten Teilchen gemäß ihren stöchiometrischen Koeffizienten:</p>
+            <p class="formula-inline"><em>E</em> = <em>E°</em> + (0,059 V / <em>z</em>) · lg (<em>c<sup>b</sup></em>(Ox) / <em>c<sup>a</sup></em>(Red))</p>
+            <p class="small-note">Reine Feststoffe (wie das Metallblech Ag(s) oder Cu(s)) und das Lösungsmittel Wasser besitzen die konstante Aktivität 1 und tauchen daher nicht im Logarithmus auf. Genau genommen werden Konzentrationen im Logarithmus stets dimensionslos auf die Standardkonzentration <em>c°</em> = 1 mol/L normiert (<em>c</em> / <em>c°</em>).</p>
+          </div>
+        </details>
+        <details>
+          <summary>Praxis &amp; Abitur-Bezug: Warum KNO₃ statt KCl – und extrem kleine Konzentrationen</summary>
+          <div class="acc-body">
+            <p><strong>Keine Chlorid-Salzbrücke:</strong> KCl würde Cl⁻-Ionen in die AgNO₃-Halbzelle eintragen; es fiele sofort weißes AgCl↓ aus (<em>K</em><sub>L</sub>(AgCl) ≈ 1,8 · 10⁻¹⁰ mol²/L²), wodurch <em>c</em>(Ag⁺) drastisch sinkt. Genau diesen Effekt nutzt man umgekehrt in der Analytik (Potenziometrie), um mithilfe der Nernst-Gleichung extrem kleine Ionenkonzentrationen bzw. Löslichkeitsprodukte zu bestimmen.</p>
+          </div>
+        </details>
+      </div>
+
+      <h3>5. Übungsaufgaben zur Nernst-Gleichung</h3>
+      <article class="task-card" id="task-nernst-ex-cu">
+        <h4>Aufgabe N1: Zellspannung einer Kupfer-Konzentrationszelle berechnen</h4>
+        <p>Berechne die Zellspannung Δ<em>E</em> der Kupfer-Konzentrationszelle <strong>Cu | Cu²⁺ (0,001 mol/L) ‖ Cu²⁺ (1 mol/L) | Cu</strong> bei 25 °C (<em>E°</em>(Cu / Cu²⁺) = +0,34 V).</p>
+        <form class="nernst-form" data-check-form="nernst-ex-cu" novalidate>
+          <div class="field-group">
+            <label for="nernst-ex-cu">Berechnete Zellspannung Δ<em>E</em>:</label>
+            <span id="nernst-ex-cu-hint" class="field-hint">Angabe in V mit 3 Nachkommastellen (z. B. 0,089)</span>
+            <div class="input-unit">
+              <input type="text" id="nernst-ex-cu" inputmode="decimal" autocomplete="off" aria-describedby="nernst-ex-cu-hint" size="8">
+              <span>V</span>
+            </div>
+          </div>
+          <div class="btn-row"><button type="submit" class="btn btn-sm">Überprüfen</button></div>
+        </form>
+        <p class="feedback" id="fb-nernst-ex-cu" aria-live="polite"></p>
+        <details>
+          <summary>Rechenweg anzeigen</summary>
+          <div class="solution">
+            <p>Für Kupfer gilt <em>z</em> = 2 (Cu ⇌ Cu²⁺ + 2 e⁻):</p>
+            <p><em>E</em>(Kathode, 1 mol/L) = <em>E°</em>(Cu / Cu²⁺) = +0,340 V</p>
+            <p><em>E</em>(Anode, 0,001 mol/L) = +0,340 V + (0,059 V / 2) · lg(10⁻³) = +0,340 V − 0,0885 V ≈ +0,2515 V</p>
+            <p><strong>Δ<em>E</em> = <em>E</em>(Kathode) − <em>E</em>(Anode) = 0,0885 V ≈ 0,089 V</strong></p>
+          </div>
+        </details>
+      </article>
+
+      <article class="task-card" id="task-nernst-ex-unknown">
+        <h4>Aufgabe N2: Unbekannte Silber-Ionenkonzentration ermitteln</h4>
+        <p>Eine Silber-Konzentrationszelle mit der Bezugshalbzelle <em>c₀</em>(Ag⁺) = 1 mol/L liefert bei 25 °C eine Spannung von <strong><em>U</em> = 0,295 V</strong> (die unbekannte Lösung bildet den Minuspol). Ermittle die unbekannte Silber-Ionenkonzentration <em>c</em>(Ag⁺) bzw. den Exponenten <em>x</em> = lg(<em>c</em> / (mol/L)).</p>
+        <form class="nernst-form" data-check-form="nernst-ex-unknown" novalidate>
+          <div class="field-group">
+            <label for="nernst-ex-unknown">Exponent <em>x</em> = lg(<em>c</em> / (mol/L)) oder Konzentration <em>c</em> in mol/L:</label>
+            <span id="nernst-ex-unknown-hint" class="field-hint">Gib entweder den Exponenten (z. B. −5) oder die Konzentration (z. B. 0,00001) an</span>
+            <div class="input-unit">
+              <input type="text" id="nernst-ex-unknown" autocomplete="off" aria-describedby="nernst-ex-unknown-hint" size="12">
+            </div>
+          </div>
+          <div class="btn-row"><button type="submit" class="btn btn-sm">Überprüfen</button></div>
+        </form>
+        <p class="feedback" id="fb-nernst-ex-unknown" aria-live="polite"></p>
+        <details>
+          <summary>Rechenweg anzeigen</summary>
+          <div class="solution">
+            <p>Da die unbekannte Halbzelle der Minuspol (Anode) ist, gilt <em>U</em> = <em>E°</em> − <em>E</em>(Mess) = −0,059 V · lg <em>c</em>(Ag⁺).</p>
+            <p>Umgestellt nach lg <em>c</em>(Ag⁺): lg <em>c</em>(Ag⁺) = −<em>U</em> / 0,059 V = −0,295 V / 0,059 V = <strong>−5</strong>.</p>
+            <p><strong><em>c</em>(Ag⁺) = 10⁻⁵ mol/L = 0,00001 mol/L</strong></p>
+          </div>
+        </details>
+      </article>
+    </section>
+
+    <!-- =============================================================
+         8. FACHSPRACHEN-BOX
          ============================================================= -->
     <section id="fachsprache" class="card">
       <h2>Fachsprachen-Box: Die galvanische Zelle</h2>
@@ -421,6 +723,7 @@
         <li>„Da [Metall A] unedler ist als [Metall B], besitzt die [Metall A]-Halbzelle das niedrigere elektrische Potenzial und bildet in dieser Kombination die Anode (den Minuspol).“</li>
         <li>„Zwischen der [Metall A]-Halbzelle und der [Metall B]-Halbzelle besteht ein Potenzialunterschied, den wir als elektrische Spannung (Zellspannung U bzw. ΔE) von [Messwert] V messen.“</li>
         <li>„Im äußeren Stromkreis fließen die Elektronen durch das Kabel von der Anode zur Kathode, während im inneren Stromkreis Ionen durch die Salzbrücke wandern, um den Ladungsausgleich sicherzustellen.“</li>
+        <li>„In einer Konzentrationszelle bestimmt das Verhältnis der Ionenkonzentrationen die Polung: Die Halbzelle mit der geringeren Kationenkonzentration besitzt nach der Nernst-Gleichung das niedrigere Potenzial und bildet die Anode (Minuspol).“</li>
       </ul>
     </section>
   </main>
