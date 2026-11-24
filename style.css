@@ -989,6 +989,24 @@ body.expert .expert-only { display: flex; }
   margin: 0 0 0.75rem;
   background: #fff;
 }
+.nernst-pair-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+.nernst-pair-grid .nernst-conc-choice {
+  margin-bottom: 0.45rem;
+}
+@media (width < 520px) {
+  .nernst-pair-grid { grid-template-columns: 1fr; }
+}
+.nernst-intro {
+  margin-bottom: 1rem;
+}
+.nernst-intro p:first-child { margin-top: 0; }
+.nernst-todo {
+  font-size: 0.92rem;
+}
 .nernst-conc-choice legend {
   font-size: 0.88rem;
   font-weight: 700;
@@ -1099,10 +1117,10 @@ body.expert .expert-only { display: flex; }
     border-bottom: 1px solid var(--border);
   }
   .nernst-table {
-    --label-2: "lg(c / (mol/L))";
-    --label-3: "Spannung U = ΔE";
-    --label-4: "Potenzial E(Ag/Ag⁺)";
-    --label-5: "ΔU pro Dekade";
+    --label-2: "Verhältnis c₂ / c₁";
+    --label-3: "lg(c₂ / c₁)";
+    --label-4: "Spannung U = ΔE";
+    --label-5: "Faktor x";
     --label-6: "Aktion";
   }
   .nernst-table td {
@@ -1296,13 +1314,46 @@ body.expert .expert-only { display: flex; }
   margin: 0.85rem 0 0.25rem;
 }
 .formula-title {
-  font-size: 0.82rem;
+  font-size: 0.88rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.01em;
   color: var(--primary-dark);
   margin-bottom: 0.35rem;
 }
+.formula-cond {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-inline-start: 0.45rem;
+}
+.nernst-old-lab {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0.65rem 0 0.9rem;
+}
+.nernst-old-readouts {
+  margin-top: 0;
+}
+.nernst-e0-box {
+  background: #f6fafd;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--radius);
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 0.95rem;
+}
+.nernst-e0-box p:first-child { margin-top: 0; }
+.derivation-steps {
+  background: #fff;
+  border: 1px solid #d5e0ea;
+  border-radius: 6px;
+  padding: 0.65rem 0.9rem;
+  margin: 0.5rem 0;
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.95rem;
+}
+.derivation-steps p { margin: 0; }
 .formula-main {
   font-size: clamp(1.05rem, 1.8vw, 1.25rem);
   font-weight: 700;
@@ -1409,13 +1460,13 @@ body.expert .expert-only { display: flex; }
 
 /* Print Styles */
 @media print {
-  .site-header, .site-nav, .btn, .particle-toolbar, .dl-controls button, #random-cell, #next-cell, #expert-mode, .nernst-conc-choice, .nernst-chart-toolbar, .nernst-table th:last-child, .nernst-table td:last-child, footer {
+  .site-header, .site-nav, .btn, .particle-toolbar, .dl-controls button, #random-cell, #next-cell, #expert-mode, .nernst-conc-choice, .nernst-old-ref-choice, .nernst-chart-toolbar, .nernst-table th:last-child, .nernst-table td:last-child, footer {
     display: none !important;
   }
   body { background: #fff; color: #000; font-size: 10pt; }
   main { max-width: 100%; margin: 0; padding: 0; }
   .card { border: none; box-shadow: none; padding: 0.5rem 0; }
   .gallery-table { font-size: 9pt; }
-  .nernst-figure, .nernst-formula-box { break-inside: avoid; }
+  .nernst-figure, .nernst-formula-box, .nernst-e0-box { break-inside: avoid; }
   canvas, svg { max-width: 80% !important; page-break-inside: avoid; }
 }

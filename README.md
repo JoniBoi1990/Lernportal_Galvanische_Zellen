@@ -42,11 +42,11 @@ Dieses interaktive HTML5-Portal ermöglicht Schülerinnen und Schülern das voll
    - **Aufgabe 4:** Reflexionsaufgabe zur Erklärung der Zellspannung über Doppelschichten mit Musterlösung.
    - **Fachbegriffe-Matching:** 15 Kernbegriffe aus der Fachsprachen-Box mit Sofortrückmeldung.
 
-7. **Ableitung der Nernst-Gleichung (Silber-Konzentrationszelle):**
-   - **5-stufige Verdünnungsreihe** ($\text{Ag} \mid \text{AgNO}_3\ (c) \parallel \text{AgNO}_3\ (1\,\text{mol/L}) \mid \text{Ag}$ mit $c = 1 \dots 0{,}0001\,\text{mol/L}$) samt $\text{KNO}_3$-Salzbrücke und 1-mV-genauer Spannungsanzeige.
-   - **Lineare vs. halblogarithmische Auswertung:** Direktes Diagramm $E$ gegen $c$ im Vergleich zu $E$ gegen $\lg c$ bzw. $U$ gegen $-\lg c$ mit live berechneter OLS-Ausgleichsgerade, Steigungsdreieck ($\approx +0{,}059\,\text{V/Dekade}$) und optionaler Vergleichsgerade für Kupfer ($z = 2$).
-   - **Qualitative & mathematische Herleitung:** Prinzip von Le Chatelier, Geradenparameter ($m \approx 0{,}059\,\text{V}$, $b \approx 0{,}80\,\text{V}$), Verallgemeinerung auf $z > 1$, thermodynamischer Hintergrund ($R T / F \cdot \ln 10$) sowie zwei Rechenaufgaben mit sofortiger Rückmeldung.
-   - **Verknüpfung zum Hauptlabor:** Direktes Öffnen der Silber- oder Kupfer-Konzentrationszelle im Hauptlabor mit konzentrationsabhängiger Ionendichte auf der Teilchenebene.
+7. **Ableitung der Nernst-Gleichung (Silber-Konzentrationszellen):**
+   - **Messreihe aus 0,1 / 0,01 / 0,001 mol/L:** Kombinieren zweier Silber-Halbzellen unterschiedlicher AgNO₃-Konzentration ($\text{Ag} \mid \text{AgNO}_3\ (c_1) \parallel \text{AgNO}_3\ (c_2) \mid \text{Ag}$) samt $\text{KNO}_3$-Salzbrücke und 1-mV-genauer Spannungsanzeige.
+   - **Lineare vs. logarithmische Auswertung:** Direktes Diagramm $U$ gegen das Verhältnis $c_2 / c_1$ im Vergleich zu $U$ gegen $\lg(c_2 / c_1)$ mit live berechneter Ausgleichsgerade, Steigungsdreieck ($x \approx 0{,}059\,\text{V}$) und optionaler Vergleichsgerade für Kupfer ($z = 2$).
+   - **Auswertung & Ziel-Experiment:** Begründung über das Prinzip von Le Chatelier, Bestimmung des Proportionalitätsfaktors $x$ in $U = \Delta E = 0{,}059\,\text{V} \cdot \lg(c_2 / c_1)$ sowie Konzentrationsbestimmung einer **alten Silbernitrat-Lösung** ($c_{\text{alt}} \approx 0{,}020\,\text{mol/L}$) gegen wählbare frische Referenzhalbzellen.
+   - **Brücke zur allgemeinen Nernst-Gleichung:** Algebraischer Nachweis, warum $E^\circ(\text{Ag}/\text{Ag}^+)$ bei Silber gegen Silber herausfällt, Verallgemeinerung auf $E = E^\circ + \frac{0{,}059\,\text{V}}{z} \cdot \lg c(\text{M}^{z+})$ und Transferaufgabe zu Kupfer ($z = 2$).
 
 ---
 

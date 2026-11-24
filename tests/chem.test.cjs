@@ -166,3 +166,48 @@ test('concentrationFromVoltage kehrt Nernst-Gleichung für unbekannte Lösung um
 test('overall für Konzentrationszelle formatiert Konzentrationsausgleich', () => {
   assert.equal(C.overall('Ag', 'Ag', 0.001, 1), 'Ag⁺ (c = 1 mol/L) → Ag⁺ (c = 0,001 mol/L)');
 });
+
+test('SILVER_CONCS, SILVER_CELL_COMBOS und concentrationCellPair decken Unterrichtsgang ab', () => {
+  assert.deepEqual(C.SILVER_CONCS, [0.1, 0.01, 0.001]);
+  assert.equal(C.SILVER_CELL_COMBOS.length, 4);
+  assert.equal(C.OLD_AG_CONC, 0.02);
+
+  const eq = C.concentrationCellPair('Ag', 0.1, 0.1);
+  assert.equal(eq.comboId, 'eq');
+  assert.equal(eq.U, 0);
+  assert.equal(eq.factorX, null);
+  assert.equal(eq.anodeSide, null);
+
+  const p1 = C.concentrationCellPair('Ag', 0.01, 0.1);
+  const p2 = C.concentrationCellPair('Ag', 0.1, 0.01);
+  assert.equal(p1.U, p2.U, 'symmetrische Spannung');
+  assert.equal(p1.anodeSide, 'left');
+  assert.equal(p2.anodeSide, 'right');
+  near(p1.ratio, 10, 1e-9);
+  near(p1.logRatio, 1, 1e-9);
+  assert.ok(p1.factorX >= 0.057 && p1.factorX <= 0.061, `factorX=${p1.factorX}`);
+
+  const p100 = C.concentrationCellPair('Ag', 0.001, 0.1);
+  assert.equal(p100.comboId, '0.001_0.1');
+  near(p100.ratio, 100, 1e-9);
+  near(p100.logRatio, 2, 1e-9);
+  near(p100.theoDeltaE, 0.118, 1e-6);
+  assert.ok(p100.factorX >= 0.058 && p100.factorX <= 0.060, `factorX=${p100.factorX}`);
+});
+
+test('oldSilverCell zeigt Polwechsel zwischen 0,1 M und 0,01 M und liefert c_alt ≈ 0,020 mol/L', () => {
+  const r01 = C.oldSilverCell(0.1);
+  assert.equal(r01.oldIsAnode, true);
+  assert.ok(r01.U >= 0.039 && r01.U <= 0.043, `gegen 0,1 M: U=${r01.U}`);
+  assert.ok(r01.estimatedC >= 0.018 && r01.estimatedC <= 0.022, `est=${r01.estimatedC}`);
+
+  const r001 = C.oldSilverCell(0.01);
+  assert.equal(r001.oldIsAnode, false);
+  assert.ok(r001.U >= 0.016 && r001.U <= 0.020, `gegen 0,01 M: U=${r001.U}`);
+  assert.ok(r001.estimatedC >= 0.018 && r001.estimatedC <= 0.022, `est=${r001.estimatedC}`);
+
+  const r0001 = C.oldSilverCell(0.001);
+  assert.equal(r0001.oldIsAnode, false);
+  assert.ok(r0001.U >= 0.075 && r0001.U <= 0.079, `gegen 0,001 M: U=${r0001.U}`);
+  assert.ok(r0001.estimatedC >= 0.018 && r0001.estimatedC <= 0.022, `est=${r0001.estimatedC}`);
+});

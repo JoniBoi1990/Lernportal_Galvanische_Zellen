@@ -7,6 +7,7 @@ const vm = require('node:vm');
 
 const ROOT = path.resolve(__dirname, '..');
 const HTML_SRC = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+const CSS_SRC = fs.readFileSync(path.join(ROOT, 'style.css'), 'utf8');
 const CHEM_SRC = fs.readFileSync(path.join(ROOT, 'chem.js'), 'utf8');
 const PARTICLES_SRC = fs.readFileSync(path.join(ROOT, 'particles.js'), 'utf8');
 const APP_SRC = fs.readFileSync(path.join(ROOT, 'app.js'), 'utf8');
@@ -363,78 +364,73 @@ function mountApp(initialStorage, confirmResult = true) {
   return { doc, win, store };
 }
 
-test('Alte localStorage-Daten ohne nernst-Key werden fehlerfrei migriert', () => {
+test('Typografie-Fix: .formula-title hat kein text-transform: uppercase', () => {
+  assert.equal(/\.formula-title\s*\{[^}]*text-transform\s*:\s*uppercase/i.test(CSS_SRC), false);
+});
+
+test('Alte localStorage-Daten werden migriert und starten im 0,01 M | 0,1 M Unterrichtsgang', () => {
   const legacy = JSON.stringify({
     lab: { left: { metal: 'Zn', electrolyte: 'Zn', c: 0.1 }, right: { metal: 'Cu', electrolyte: 'Cu', c: 0.1 }, cables: true, redSide: 'right', bridge: 'kno3', device: 'voltmeter' },
     gallery: {},
   });
   const { doc } = mountApp({ 'gz-portal-v1': legacy });
-  assert.equal(doc.querySelector('#nernst-badge').textContent, '0 / 5 gemessen');
+  assert.equal(doc.querySelector('#nernst-badge').textContent, '0 / 4 gemessen');
   assert.equal(doc.querySelector('#progress-text').textContent, '0 / 16 erledigt');
   assert.equal(doc.querySelector('#nernst-u').textContent, '0,059 V');
-  assert.equal(doc.querySelector('#nernst-e').textContent, '+0,741 V');
+  assert.equal(doc.querySelector('#nernst-ratio').textContent, '10 : 1 (lg = 1)');
+  assert.equal(doc.querySelector('#nernst-role').textContent, 'Links Anode (−) · Rechts Kathode (+)');
   assert.equal(doc.querySelector('#nernst-formula-details').open, false);
 });
 
-test('Apparatur-SVG zeigt Silber-Konzentrationszelle ohne Ionen auf der rechten Elektrode', () => {
+test('Apparatur-SVG spiegelt Ionendichte sauber ohne Elektroden-Überlappung', () => {
   const { doc } = mountApp();
   const stage = doc.querySelector('#nernst-apparatus');
   const svg = stage.querySelector('svg');
   assert.equal(svg.getAttribute('role'), 'img');
   assert.ok(svg.querySelector('title').textContent.includes('Silber-Konzentrationszelle'));
   const circles = svg.querySelectorAll('circle').filter((c) => c.getAttribute('r') === '3.4');
-  // 9 Ionen links (0,1 M) + 15 Ionen rechts (1 M) = 24
-  assert.equal(circles.length, 24);
+  // 6 Ionen links (0,01 M) + 14 Ionen rechts (0,1 M) = 20
+  assert.equal(circles.length, 20);
   const rightElectrodeOverlap = circles.filter((c) => {
     const cx = Number(c.getAttribute('cx'));
     return cx >= 394 && cx <= 416;
   });
   assert.equal(rightElectrodeOverlap.length, 0, 'keine Ionen auf rechter Elektrode');
+
+  // Konzentration links > rechts dreht Polung dynamisch um
+  doc.querySelector('input[name="nernst-c-left"][value="0.1"]').click();
+  doc.querySelector('input[name="nernst-c-right"][value="0.001"]').click();
+  assert.equal(doc.querySelector('#nernst-role').textContent, 'Rechts Anode (−) · Links Kathode (+)');
+  assert.equal(doc.querySelector('#nernst-ratio').textContent, '100 : 1 (lg = 2)');
 });
 
-test('Messreihe, nicht-aufeinanderfolgende ΔU-Lücken, 5er-Serie & Diagramme funktionieren end-to-end', () => {
+test('4er-Messreihe der Silber-Konzentrationszellen und Diagramme funktionieren end-to-end', () => {
   const { doc } = mountApp();
-  // 1 mol/L und 0,01 mol/L einzeln messen (0,1 mol/L bleibt noch offen)
-  doc.querySelector('input[name="nernst-c"][value="1"]').click();
-  doc.querySelector('#nernst-record').click();
-  doc.querySelector('input[name="nernst-c"][value="0.01"]').click();
-  doc.querySelector('#nernst-record').click();
-
-  let rows = doc.querySelectorAll('#nernst-table-body tr');
-  assert.equal(rows.length, 5);
-  const row001Cols = rows[2].querySelectorAll('td');
-  assert.equal(row001Cols[3].textContent, '—', 'ohne 0,1 M darf 0,01 M kein 2-Dekaden-ΔU als ΔU pro Dekade ausgeben');
-
-  // Alle 5 Messpunkte messen
   doc.querySelector('#nernst-record-all').click();
-  assert.equal(doc.querySelector('#nernst-badge').textContent, '5 / 5 gemessen');
-  rows = doc.querySelectorAll('#nernst-table-body tr');
+  assert.equal(doc.querySelector('#nernst-badge').textContent, '4 / 4 gemessen');
+
+  const rows = doc.querySelectorAll('#nernst-table-body tr');
+  assert.equal(rows.length, 4);
+  assert.equal(rows[0].querySelectorAll('td')[3].textContent, '— (lg = 0)');
   for (let i = 1; i < rows.length; i++) {
-    const du = rows[i].querySelectorAll('td')[3].textContent;
-    assert.match(du, /^\+0,0(58|59|60) V$/, `Dekadenschritt Zeile ${i}: ${du}`);
+    const fx = rows[i].querySelectorAll('td')[3].textContent;
+    assert.match(fx, /^0,0(58|59|60) V$/, `Faktor x Zeile ${i}: ${fx}`);
   }
 
-  // Diagramm A & Diagramm B gerendert
   const svgA = doc.querySelector('#nernst-chart-linear svg');
   const svgB = doc.querySelector('#nernst-chart-log svg');
   assert.ok(svgA && svgB);
   const summary = doc.querySelector('#nernst-reg-summary').textContent;
-  assert.match(summary, /Ausgleichsgerade \(n = 5\):/);
+  assert.match(summary, /Ausgleichsgerade \(n = 4\):/);
+  assert.match(summary, /Faktor x = 0,0(58|59|60)/);
   assert.match(summary, /R² = (0,999\d|1,0000)/);
 
-  // Kupfer-Vergleich einblenden schaltet automatisch auf U-Modus um
-  const cuSwitch = doc.querySelector('#nernst-show-cu');
-  cuSwitch.click();
-  assert.equal(doc.querySelector('input[name="nernst-chart-mode"][value="U"]').checked, true);
-  assert.ok(doc.querySelector('#nernst-chart-log').innerHTML.includes('Cu (z = 2): 29,5 mV/Dekade'));
-
-  // Zurück zu E-Modus deaktiviert Kupfer-Vergleich wieder
-  const modeE = doc.querySelector('input[name="nernst-chart-mode"][value="E"]');
-  modeE.click();
-  assert.equal(doc.querySelector('#nernst-show-cu').checked, false);
+  // Kupfer-Vergleich einblenden überlagert direkt Diagramm B
+  doc.querySelector('#nernst-show-cu').click();
+  assert.ok(doc.querySelector('#nernst-chart-log').innerHTML.includes('Cu (z = 2): x ≈ 0,0295 V'));
 });
 
-test('Validierung, aria-invalid, Fortschritt, Hauptlabor-Link und Reset greifen sauber ineinander', () => {
+test('Auswertung (3a, 3b), Ziel-Experiment Alte AgNO3-Lösung, Transferaufgabe, Hauptlabor und Reset', () => {
   const { doc, store } = mountApp();
   doc.querySelector('#nernst-record-all').click();
 
@@ -446,12 +442,11 @@ test('Validierung, aria-invalid, Fortschritt, Hauptlabor-Link und Reset greifen 
   assert.equal(slopeIn.getAttribute('aria-invalid'), 'true');
   assert.ok(doc.querySelector('#fb-nernst-derive').textContent.includes('statt 59 mV'));
 
-  // Tippen löscht aria-invalid
   slopeIn.value = '0,059';
   slopeIn.dispatchEvent({ type: 'input', target: slopeIn });
   assert.equal(slopeIn.hasAttribute('aria-invalid'), false);
 
-  // Aufgabe 3a komplett
+  // 3a komplett
   for (const [id, val] of [['#nernst-q1', 'prod'], ['#nernst-q2', 'mehr'], ['#nernst-q3', 'anode']]) {
     const el = doc.querySelector(id);
     el.value = val;
@@ -460,57 +455,55 @@ test('Validierung, aria-invalid, Fortschritt, Hauptlabor-Link und Reset greifen 
   doc.querySelector('form[data-check-form="nernst-qual"]').dispatchEvent({ type: 'submit' });
   assert.ok(doc.querySelector('#fb-nernst-qual').textContent.startsWith('✔'));
 
-  // Aufgabe 3b komplett -> öffnet Formel-Details automatisch
-  const bIn = doc.querySelector('#nernst-intercept-in');
-  bIn.value = '0,80';
-  bIn.dispatchEvent({ type: 'input', target: bIn });
-  const signSel = doc.querySelector('#nernst-formula-sign');
-  signSel.value = '+';
-  signSel.dispatchEvent({ type: 'change', target: signSel });
-  const logSel = doc.querySelector('#nernst-formula-log');
-  logSel.value = 'lgc';
-  logSel.dispatchEvent({ type: 'change', target: logSel });
+  // 3b komplett -> öffnet Formel-Details automatisch
+  const rSel = doc.querySelector('#nernst-reason-ratio');
+  rSel.value = 'ratio';
+  rSel.dispatchEvent({ type: 'change', target: rSel });
+  const lSel = doc.querySelector('#nernst-reason-log');
+  lSel.value = 'double';
+  lSel.dispatchEvent({ type: 'change', target: lSel });
   doc.querySelector('form[data-check-form="nernst-derive"]').dispatchEvent({ type: 'submit' });
   assert.ok(doc.querySelector('#fb-nernst-derive').textContent.startsWith('✔'));
   assert.equal(doc.querySelector('#nernst-formula-details').open, true);
 
-  // Aufgabe N1 (Kupfer mV-Hinweis testen, dann korrekt)
+  // Ziel-Experiment: Polwechsel zwischen 0,1 M und 0,01 M beobachten & c_alt = 0,020 prüfen
+  assert.ok(doc.querySelector('#nernst-old-poles').textContent.includes('Alte Lösung = Minuspol'));
+  doc.querySelector('input[name="nernst-old-ref"][value="0.01"]').click();
+  assert.ok(doc.querySelector('#nernst-old-poles').textContent.includes('Alte Lösung = Pluspol'));
+
+  const oldIn = doc.querySelector('#nernst-old-c');
+  oldIn.value = '0,020';
+  oldIn.dispatchEvent({ type: 'input', target: oldIn });
+  doc.querySelector('form[data-check-form="nernst-old"]').dispatchEvent({ type: 'submit' });
+  assert.ok(doc.querySelector('#fb-nernst-old').textContent.startsWith('✔'));
+
+  // Transferaufgabe Kupfer (0,001 M | 0,1 M) -> mV-Hinweis testen, dann 0,059 V
   const cuIn = doc.querySelector('#nernst-ex-cu');
-  cuIn.value = '89';
+  cuIn.value = '59';
   cuIn.dispatchEvent({ type: 'input', target: cuIn });
   doc.querySelector('form[data-check-form="nernst-ex-cu"]').dispatchEvent({ type: 'submit' });
   assert.equal(cuIn.getAttribute('aria-invalid'), 'true');
-  assert.ok(doc.querySelector('#fb-nernst-ex-cu').textContent.includes('Volt statt Millivolt'));
-  cuIn.value = '0,089';
+  assert.ok(doc.querySelector('#fb-nernst-ex-cu').textContent.includes('statt 59 mV'));
+
+  cuIn.value = '0,059';
   cuIn.dispatchEvent({ type: 'input', target: cuIn });
   doc.querySelector('form[data-check-form="nernst-ex-cu"]').dispatchEvent({ type: 'submit' });
   assert.ok(doc.querySelector('#fb-nernst-ex-cu').textContent.startsWith('✔'));
 
-  // Aufgabe N2 (-5 und 0,00001 akzeptiert)
-  const unkIn = doc.querySelector('#nernst-ex-unknown');
-  unkIn.value = '0,00001';
-  unkIn.dispatchEvent({ type: 'input', target: unkIn });
-  doc.querySelector('form[data-check-form="nernst-ex-unknown"]').dispatchEvent({ type: 'submit' });
-  assert.ok(doc.querySelector('#fb-nernst-ex-unknown').textContent.startsWith('✔'));
-
   assert.equal(doc.querySelector('#progress-text').textContent, '5 / 16 erledigt');
 
-  // Hauptlabor-Verknüpfung (Kupfer 0,001 M | 1 M)
+  // Hauptlabor-Verknüpfung (Kupfer 0,001 M | 0,1 M)
   doc.querySelector('#nernst-open-cu-lab').click();
   assert.equal(doc.querySelector('#expert-mode').checked, true);
   const parsed = JSON.parse(store['gz-portal-v1']);
   assert.equal(parsed.lab.left.metal, 'Cu');
   assert.equal(parsed.lab.left.c, 0.001);
-  assert.equal(parsed.lab.right.c, 1);
-
-  // Glossar-Matching hat alle 15 Einträge (m0..m14) eindeutig gemischt
-  const matchOpts = doc.querySelectorAll('#match-area select[data-match="m0"] option');
-  assert.equal(matchOpts.length, 16); // Platzhalter + 15 Einträge
+  assert.equal(parsed.lab.right.c, 0.1);
 
   // Reset setzt alles zurück
   doc.querySelector('#reset-all').click();
   assert.equal(doc.querySelector('#progress-text').textContent, '0 / 16 erledigt');
-  assert.equal(doc.querySelector('#nernst-badge').textContent, '0 / 5 gemessen');
+  assert.equal(doc.querySelector('#nernst-badge').textContent, '0 / 4 gemessen');
   assert.equal(doc.querySelector('#nernst-formula-details').open, false);
-  assert.equal(doc.querySelector('#fb-nernst-derive').textContent, '');
+  assert.equal(doc.querySelector('#fb-nernst-old').textContent, '');
 });

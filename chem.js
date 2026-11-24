@@ -46,6 +46,14 @@
   const ORDER = ['Zn', 'Fe', 'Cu', 'Ag'];
   const CONCENTRATIONS = [1, 0.1, 0.01, 0.001, 0.0001];
   const NERNST_SERIES = [1, 0.1, 0.01, 0.001, 0.0001];
+  const SILVER_CONCS = [0.1, 0.01, 0.001];
+  const SILVER_CELL_COMBOS = [
+    { id: 'eq', c1: 0.1, c2: 0.1, label: '0,1 M ‖ 0,1 M (Vergleich)' },
+    { id: '0.01_0.1', c1: 0.01, c2: 0.1, label: '0,01 M ‖ 0,1 M' },
+    { id: '0.001_0.01', c1: 0.001, c2: 0.01, label: '0,001 M ‖ 0,01 M' },
+    { id: '0.001_0.1', c1: 0.001, c2: 0.1, label: '0,001 M ‖ 0,1 M' },
+  ];
+  const OLD_AG_CONC = 0.02;
   const DEFAULT_C = 0.1;
 
   /* ---------- Formatierung ---------- */
@@ -312,6 +320,59 @@
     return { logC, c: Math.pow(10, logC) };
   }
 
+  /** Konzentrationszelle zwischen beliebigen Konzentrationen cLeft und cRight desselben Metalls */
+  function concentrationCellPair(metalId, cLeft, cRight) {
+    const p = PAIRS[metalId];
+    if (!p) throw new Error('Unbekanntes Redoxpaar: ' + metalId);
+    const left = Number(cLeft);
+    const right = Number(cRight);
+    if (!(left > 0) || !(right > 0)) throw new Error('Konzentration muss positiv sein');
+    const c1 = Math.min(left, right);
+    const c2 = Math.max(left, right);
+    const ratio = c2 / c1;
+    const logRatio = Math.log10(ratio);
+    const theoDeltaE = (NERNST / p.z) * logRatio;
+    const U = measuredDeltaE({ metal: metalId, c: c1 }, { metal: metalId, c: c2 });
+    const factorX = logRatio > 1e-9 ? U / logRatio : null;
+    const same = Math.abs(left - right) < 1e-12;
+    const anodeSide = same ? null : left < right ? 'left' : 'right';
+    const cathodeSide = same ? null : left < right ? 'right' : 'left';
+    const comboId = same ? 'eq' : String(c1) + '_' + String(c2);
+    return {
+      metal: metalId,
+      z: p.z,
+      cLeft: left,
+      cRight: right,
+      c1,
+      c2,
+      ratio,
+      logRatio,
+      theoDeltaE,
+      U,
+      factorX,
+      anodeSide,
+      cathodeSide,
+      comboId,
+    };
+  }
+
+  /** Messung der alten Silbernitrat-Lösung (cTrue) gegen eine frische Referenzhalbzelle cRef */
+  function oldSilverCell(cRef) {
+    const ref = Number(cRef);
+    const pair = concentrationCellPair('Ag', OLD_AG_CONC, ref);
+    const oldIsAnode = OLD_AG_CONC < ref;
+    const estimatedC = oldIsAnode
+      ? ref / Math.pow(10, pair.U / NERNST)
+      : ref * Math.pow(10, pair.U / NERNST);
+    return Object.assign({}, pair, {
+      oldSide: 'left',
+      oldIsAnode,
+      cRef: ref,
+      cTrue: OLD_AG_CONC,
+      estimatedC,
+    });
+  }
+
   /** Die sechs Pflichtkombinationen der Versuchsanleitung (0,1 mol/L) */
   function coreCombos() {
     const list = [];
@@ -349,12 +410,14 @@
   }
 
   return {
-    NERNST, R_GAS, F_CONST, T_STD, PAIRS, ORDER, CONCENTRATIONS, NERNST_SERIES, DEFAULT_C, R_INTERNAL, R_MOTOR,
+    NERNST, R_GAS, F_CONST, T_STD, PAIRS, ORDER, CONCENTRATIONS, NERNST_SERIES,
+    SILVER_CONCS, SILVER_CELL_COMBOS, OLD_AG_CONC, DEFAULT_C, R_INTERNAL, R_MOTOR,
     fmtNum, fmtSigned, fmtC, fmtSci,
     potential, isComplete, isConjugate, mismatchInfo, analyzeCell,
     oxidation, reduction, redoxPair, overall, electronsTransferred, cellDiagram, lcm,
     comboKey, measurementOffset, measuredDeltaE, coreCombos,
     concentrationCellPoint, linearRegression, concentrationFromVoltage,
+    concentrationCellPair, oldSilverCell,
     doubleLayerCharge, doubleLayerRates,
   };
 });
